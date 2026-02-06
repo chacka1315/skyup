@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field
+from datetime import datetime
 from uuid import UUID
 
 
@@ -7,9 +8,15 @@ class ReplyBase(SQLModel):
 
 
 class ReplyCreate(ReplyBase):
-    user_id: UUID
-    post_id: UUID
+    pass
 
 
 class ReplyUpdate(ReplyBase):
     pass
+
+
+class ReplyPublic(ReplyBase):
+    id: UUID
+    author_id: UUID
+    post_id: UUID
+    created_at: datetime

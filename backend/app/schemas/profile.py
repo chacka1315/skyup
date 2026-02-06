@@ -1,24 +1,23 @@
-from sqlmodel import SQLModel, Field, Date
+from sqlmodel import SQLModel, Field, Date, Column
+from datetime import date
 from uuid import UUID
 
 
-class ProdileBase(SQLModel):
-    birthday: Date | None
+class ProfileBase(SQLModel):
+    name: str = Field(index=True, max_length=50)
+    country: str | None = None
+    birthday: date | None = Field(default=None, sa_column=Column(Date))
     bio: str | None = Field(default=None, max_length=255)
-    avatar_url: str | None = None
-    banner_url: str | None = None
-    avatar_id: str | None = None
-    banner_id: str | None = None
 
 
-class ProfileCreate(ProdileBase):
-    user_id: UUID
-
-
-class ProfileUpdate(ProdileBase):
+class ProfileCreate(ProfileBase):
     pass
 
 
-class ProfilePublic(ProdileBase):
+class ProfileUpdate(ProfileBase):
+    pass
+
+
+class ProfilePublic(ProfileBase):
     id: UUID
     user_id: UUID
