@@ -1,11 +1,11 @@
 help:
 	@echo ""
-	@echo "Available commands:"
-	@echo "  make migrate-auto m=\"msg\"  → autogenerate migration"
-	@echo "  make migrate-up               → upgrade head"
-	@echo "  make migrate-down          → downgrade -1"
+	@echo "Open the Makefile to see available commands"
 	@echo ""
 
+dev:
+	uv run fastapi dev app/main.py
+	
 migrate-auto:
 	uv run alembic revision --autogenerate -m "$(m)"
 

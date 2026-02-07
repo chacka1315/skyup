@@ -4,7 +4,9 @@ from uuid import UUID
 
 
 class RelationBase(SQLModel):
-    receiver_id: UUID = Field(foreign_key="users.id", nullable=False)
+    receiver_id: UUID = Field(
+        foreign_key="users.id", nullable=False, ondelete="CASCADE"
+    )
 
 
 class RelationCreate(RelationBase):
