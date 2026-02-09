@@ -10,7 +10,7 @@ from sqlmodel import (
 )
 from datetime import datetime
 from uuid import UUID
-from app.deps import generate_uuid7
+from .helpers.db import generate_uuid7
 from .schemas import (
     UserBase,
     ProfileBase,
@@ -25,6 +25,7 @@ class User(UserBase, table=True):
 
     id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
     password: str = Field(max_length=255)
+    refresh_token: str | None = None
     is_verified: bool | None = Field(
         default=None,
         sa_column=Column(Boolean, server_default=text("FALSE"), nullable=False),

@@ -1,4 +1,11 @@
 from sqlmodel import Session
+from uuid_utils import uuid7
+from uuid import UUID
+
+
+# generate an uuid v7 for the sql tables
+def generate_uuid7() -> UUID:
+    return UUID(str(uuid7()))
 
 
 def refresh_all(session: Session, *instances) -> None:
