@@ -90,9 +90,9 @@ async def validate_user_creation(user_in: UserCreate, session: SessionDep):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
-    session: SessionDep
-
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -102,15 +102,19 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
         payload = jwt.decode(
             token, settings.ACCESS_TOKEN_SECRET, algorithms=[settings.TOKEN_ALGORITHM]
         )
-        token_data = payload.get("sub")
-        if token_data is None:
+        user_id = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-        token_data = TokenData.model_validate(user)
-    except jwt.InvalidTokenError:
+        token_data = TokenData(user_id=user_id)
+    except jwt.InvalidTokenError as err:
+        print("🔅JWT ERR:", err)
         raise credentials_exception
+
     user = session.get(User, token_data.user_id)
+
     if user is None:
         raise credentials_exception
+
     return user
 
 
@@ -118,5 +122,5 @@ async def get_current_verified_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     if not current_user.is_verified:
-        raise HTTPException(status_code=400, detail="Unverified account")
+        raise HTTPException(status_code=403, detail="Unverified account")
     return current_user
