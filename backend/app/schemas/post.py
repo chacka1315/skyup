@@ -8,12 +8,12 @@ class PostBase(SQLModel):
     content: str = Field(max_length=300)
 
 
-class PostCreate(PostBase):
+class PostUpdate(PostBase):
     pass
 
 
 class PostPublic(PostBase):
     id: UUID
     author_id: UUID
-    image_url: HttpUrl | None
+    media_url: HttpUrl | None
     created_at: datetime

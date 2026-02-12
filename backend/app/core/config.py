@@ -45,8 +45,7 @@ class Settings(BaseSettings):
 
     # For catching mails in dev
     TEST_MAIL_USERNAME: str | None
-    TEST_MAIL_FROM: str | None
-    TEST_MAIL_FROM_NAME: str | None
+    TEST_MAIL_SERVER: str | None
     TEST_MAIL_PASSWORD: str | None
 
     model_config = SettingsConfigDict(env_file=env_file, extra="ignore")

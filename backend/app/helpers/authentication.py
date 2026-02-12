@@ -1,11 +1,11 @@
 import secrets
 from ..core.config import settings
 from app.models import User
-from app.deps import SessionDep
-from sqlmodel import select
+from sqlmodel import select, Session
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 import jwt
+from uuid import uuid4
 
 
 def generate_code() -> str:
@@ -15,7 +15,7 @@ def generate_code() -> str:
 password_hasher = PasswordHash.recommended()
 
 
-def authenticate_user(email: str, password: str, session: SessionDep) -> User | None:
+def authenticate_user(email: str, password: str, session: Session) -> User | None:
     user = session.exec(select(User).where(User.email == email)).one_or_none()
 
     if not user:
@@ -42,13 +42,16 @@ def create_access_token(payload: dict):
     return encoded_jwt
 
 
-def create_refresh_token(payload: dict):
+def create_refresh_token(
+    payload: dict,
+    expire_at: datetime = datetime.now(timezone.utc)
+    + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+):
     to_encode = payload.copy()
-    expire_at = datetime.now(timezone.utc) + timedelta(
-        days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+    to_encode.update(
+        {"exp": expire_at, "iat": datetime.now(timezone.utc), "jti": str(uuid4())}
     )
-    to_encode.update({"exp": expire_at})
     encoded_jwt = jwt.encode(
-        to_encode, settings.ACCESS_TOKEN_SECRET, algorithm=settings.TOKEN_ALGORITHM
+        to_encode, settings.REFRESH_TOKEN_SECRET, algorithm=settings.TOKEN_ALGORITHM
     )
     return encoded_jwt

@@ -1,8 +1,8 @@
-from .reply import ReplyBase
-from .profile import ProfileBase
-from .user import UserBase, UserCreate, UserPublic
-from .bookmark import BookmarkBase
-from .post import PostBase
-from .relation import RelationBase
-from .email_verification import EmailVerificationCreate
-from .token import Token, TokenData
+from .reply import *
+from .profile import *
+from .user import *
+from .bookmark import *
+from .post import *
+from .relation import *
+from .email_verification import *
+from .other_schemas import *

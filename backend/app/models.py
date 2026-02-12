@@ -11,13 +11,7 @@ from sqlmodel import (
 from datetime import datetime
 from uuid import UUID
 from .helpers.db import generate_uuid7
-from .schemas import (
-    UserBase,
-    ProfileBase,
-    ReplyBase,
-    PostBase,
-    RelationBase,
-)
+from .schemas import UserBase, ProfileBase, ReplyBase, PostBase, RelationBase
 
 
 class User(UserBase, table=True):
@@ -56,7 +50,9 @@ class Post(PostBase, table=True):
 
     id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
     author_id: UUID = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")
-    image_url: str | None = None
+    media_url: str | None = None
+    media_public_id: str | None = None
+    media_type: str | None = None
     created_at: datetime | None = Field(
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
@@ -95,11 +91,6 @@ class Relation(RelationBase, table=True):
     __tablename__ = "relations"
 
     id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
-    sender_id: UUID = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")
-    is_accepted: bool | None = Field(
-        default=None,
-        sa_column=Column(Boolean, server_default=text("FALSE"), nullable=False),
-    )
     created_at: datetime | None = Field(
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),

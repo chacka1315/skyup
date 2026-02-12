@@ -10,7 +10,13 @@
       margin: 0;
       padding: 0;
       font-family:
-        system-ui, apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        Courier,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        'Helvetica Neue',
+        Arial,
         sans-serif;
       line-height: 1.6;
       color: #333;
@@ -25,7 +31,11 @@
       <div
         class="header"
         style="
-          background: rgb(42, 91, 240);
+          background: linear-gradient(
+            90deg,
+            rgb(42, 91, 240),
+            rgb(9, 126, 210)
+          );
           padding: 40px 20px;
           text-align: center;
         "
@@ -56,9 +66,13 @@
         <div
           class="code-box"
           style="
-            background: rgb(42, 91, 240);
-            border-radius: 12px;
-            padding: 30px;
+            background: linear-gradient(
+              90deg,
+              rgb(42, 91, 240),
+              rgb(9, 126, 210)
+            );
+            border-radius: 5px;
+            padding: 10px;
             text-align: center;
             margin: 30px 0;
           "
@@ -140,7 +154,7 @@
       >
         <p style="margin: 5px 0"><strong>{{ app_name }}</strong></p>
         <p style="margin: 5px 0">
-          This email has been sent automatically, don't send a response.
+          This email has been sent automatically, don't send a response back.
         </p>
         <p style="margin: 5px 0">
           &copy; {{ year }} {{ app_name }}. All rights reserved.
