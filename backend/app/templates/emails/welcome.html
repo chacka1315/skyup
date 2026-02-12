@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to SkyUp</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family:
+        'Courier',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        Arial,
+        sans-serif;
+      background-color: #f4f4f4;
+      line-height: 1.6;
+    "
+  >
+    <div
+      class="container"
+      style="max-width: 600px; margin: 0 auto; background-color: #ffffff"
+    >
+      <div
+        class="header"
+        style="
+          background: linear-gradient(
+            90deg,
+            rgb(42, 91, 240),
+            rgb(9, 126, 210)
+          );
+          padding: 50px 20px;
+          text-align: center;
+        "
+      >
+        <h1 style="color: #ffffff; font-size: 32px; margin: 0 0 10px 0">
+          Welcome to SkyUp!
+        </h1>
+        <p style="color: #ffffff; font-size: 18px; opacity: 0.95; margin: 0">
+          Your account is now verified
+        </p>
+      </div>
+
+      <div class="content" style="padding: 40px 30px">
+        <p
+          class="welcome-message"
+          style="font-size: 18px; color: #333; margin: 0 0 20px 0"
+        >
+          Hello <strong>{{ user_name }}</strong>,
+        </p>
+
+        <p
+          class="message"
+          style="color: #666; margin: 0 0 20px 0; line-height: 1.8"
+        >
+          Congratulations! Your account on <strong>{{ app_name }}</strong> is
+          now verified and active. You can now enjoy all of our features.
+        </p>
+
+        <div class="features" style="margin: 30px 0">
+          <div
+            class="feature"
+            style="
+              display: flex;
+              margin: 20px 0;
+              padding: 15px;
+              background-color: #f8f9fa;
+              border-radius: 8px;
+            "
+          >
+            <div
+              class="feature-icon"
+              style="font-size: 30px; margin-right: 15px"
+            >
+              🚀
+            </div>
+            <div class="feature-content">
+              <h3 style="color: #333; font-size: 16px; margin: 0 0 5px 0">
+                Quick start
+              </h3>
+              <p style="color: #666; font-size: 14px; margin: 0">
+                Set up your profile and start using the application.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="feature"
+            style="
+              display: flex;
+              margin: 20px 0;
+              padding: 15px;
+              background-color: #f8f9fa;
+              border-radius: 8px;
+            "
+          >
+            <div
+              class="feature-icon"
+              style="font-size: 30px; margin-right: 15px"
+            >
+              🔒
+            </div>
+            <div class="feature-content">
+              <h3 style="color: #333; font-size: 16px; margin: 0 0 5px 0">
+                Maximum security
+              </h3>
+              <p style="color: #666; font-size: 14px; margin: 0">
+                Your data is protected with end-to-end encryption.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="feature"
+            style="
+              display: flex;
+              margin: 20px 0;
+              padding: 15px;
+              background-color: #f8f9fa;
+              border-radius: 8px;
+            "
+          >
+            <div
+              class="feature-icon"
+              style="font-size: 30px; margin-right: 15px"
+            >
+              💬
+            </div>
+            <div class="feature-content">
+              <h3 style="color: #333; font-size: 16px; margin: 0 0 5px 0">
+                Support 24/7
+              </h3>
+              <p style="color: #666; font-size: 14px; margin: 0">
+                Our team is available to help you at any time.
+              </p>
+            </div>
+          </div>
+        </div>
+        <p
+          class="message"
+          style="color: #666; margin: 30px 0 20px 0; line-height: 1.8"
+        >
+          If you have any questions, feel free to contact us. We are here to
+          help!
+        </p>
+      </div>
+
+      <div
+        class="footer"
+        style="
+          background-color: #f8f9fa;
+          padding: 30px;
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+        "
+      >
+        <p style="margin: 0"><strong>{{ app_name }}</strong></p>
+        <p style="margin: 0">
+          &copy; {{ year }} {{ app_name }}. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
