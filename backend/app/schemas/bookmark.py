@@ -1,13 +1,9 @@
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel
 from datetime import datetime
 from uuid import UUID
 
 
-class BookmarkBase(SQLModel):
-    user_id: UUID | None = Field(default=None, foreign_key="users.id")
-
-
-class BookmarkPublic(BookmarkBase):
+class BookmarkPublic(BaseModel):
     id: UUID
-    post_id: UUID = Field(foreign_key="posts.id")
-    created_at: datetime
+    post_id: UUID
+    owner_id: UUID

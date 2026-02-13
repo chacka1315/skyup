@@ -17,7 +17,7 @@ from .schemas import UserBase, ProfileBase, ReplyBase, PostBase, RelationBase
 class User(UserBase, table=True):
     __tablename__ = "users"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     password: str = Field(max_length=255)
     refresh_token: str | None = None
     is_verified: bool | None = Field(
@@ -37,7 +37,7 @@ class User(UserBase, table=True):
 class Profile(ProfileBase, table=True):
     __tablename__ = "profiles"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     user_id: UUID = Field(foreign_key="users.id", ondelete="CASCADE")
     avatar_url: str | None = None
     banner_url: str | None = None
@@ -48,7 +48,7 @@ class Profile(ProfileBase, table=True):
 class Post(PostBase, table=True):
     __tablename__ = "posts"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     author_id: UUID = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")
     media_url: str | None = None
     media_public_id: str | None = None
@@ -62,7 +62,7 @@ class Post(PostBase, table=True):
 class Reply(ReplyBase, table=True):
     __tablename__ = "replies"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     author_id: UUID = Field(foreign_key="users.id", ondelete="CASCADE")
     post_id: UUID = Field(foreign_key="posts.id", ondelete="CASCADE")
     created_at: datetime | None = Field(
@@ -74,7 +74,7 @@ class Reply(ReplyBase, table=True):
 class Bookmark(SQLModel, table=True):
     __tablename__ = "bookmarks"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     owner_id: UUID = Field(foreign_key="users.id", ondelete="CASCADE")
     post_id: UUID = Field(foreign_key="posts.id", ondelete="CASCADE")
     created_at: datetime | None = Field(
@@ -90,7 +90,7 @@ class Bookmark(SQLModel, table=True):
 class Relation(RelationBase, table=True):
     __tablename__ = "relations"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     created_at: datetime | None = Field(
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
@@ -100,7 +100,7 @@ class Relation(RelationBase, table=True):
 class Like(SQLModel, table=True):
     __tablename__ = "likes"
 
-    id: UUID | None = Field(default_factory=generate_uuid7, primary_key=True)
+    id: UUID = Field(default_factory=generate_uuid7, primary_key=True)
     author_id: UUID = Field(foreign_key="users.id", nullable=True, ondelete="SET NULL")
     post_id: UUID = Field(foreign_key="posts.id", ondelete="CASCADE")
 

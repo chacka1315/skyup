@@ -102,7 +102,7 @@ def get_post_replies(
     "/{reply_id}",
     response_model=ReplyPublic,
 )
-def get_reply(
+def get_single_reply(
     session: SessionDep,
     reply_id: UUID,
 ):

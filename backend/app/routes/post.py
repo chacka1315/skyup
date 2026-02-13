@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Form, UploadFile, File
 from app.deps import get_current_verified_user, SessionDep
-from app.models import User, Post, Relation
+from app.models import User, Post, Relation, Bookmark, Like
 from sqlmodel import select, or_, func, and_, col, desc
 from typing import Annotated
 from uuid import UUID
-from ..schemas import PostPublic, PostUpdate, NoContentResponse
+from ..schemas import PostPublic, PostUpdate, NoContentResponse, BookmarkPublic
 from ..helpers.cloudinary import (
     validate_media,
     upload_to_cloudinary,
@@ -49,7 +49,7 @@ async def create_post(
 
 # ----------UPDATE POST---------------
 @post_router.put("/{post_id}", response_model=PostPublic)
-async def create_post(
+async def update_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     post_id: UUID,
@@ -80,7 +80,7 @@ async def create_post(
     "/{post_id}",
     response_model=NoContentResponse,
 )
-async def create_post(
+async def delete_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     post_id: UUID,
@@ -154,7 +154,7 @@ def get_feed_posts(
     "/{post_id}",
     response_model=PostPublic,
 )
-def get_post(
+def get_single_post(
     session: SessionDep,
     post_id: UUID,
 ):
@@ -164,3 +164,105 @@ def get_post(
         raise HTTPException(status_code=404, detail="Post not found")
 
     return post
+
+
+# ----------BOOKMARK A POST---------------
+@post_router.post("/{post_id}/bookmark", response_model=NoContentResponse)
+def create_bookmark(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    post_id: UUID,
+):
+
+    # Check if the post we want to bookmark exists
+    post = session.get(Post, post_id)
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    # Check if the post is already bookmarked
+    existing_bookmark = session.exec(
+        select(Bookmark).where(
+            Bookmark.post_id == post_id, Bookmark.owner_id == current_user.id
+        )
+    ).one_or_none()
+
+    if existing_bookmark:
+        raise HTTPException(status_code=400, detail="Post already bookmarked")
+
+    bookmark = Bookmark(owner_id=current_user.id, post_id=post_id)
+
+    session.add(bookmark)
+    session.commit()
+
+    return NoContentResponse(success=True)
+
+
+# ----------DELETE BOOKMARK---------------
+@post_router.delete("/{post_id}/bookmark", response_model=NoContentResponse)
+def delete_bookmark(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    post_id: UUID,
+):
+    existing_bookmark = session.exec(
+        select(Bookmark).where(
+            Bookmark.post_id == post_id, Bookmark.owner_id == current_user.id
+        )
+    ).one_or_none()
+
+    if not existing_bookmark:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+
+    session.delete(existing_bookmark)
+    session.commit()
+
+    return NoContentResponse(success=True)
+
+
+# ----------LIKE A POST---------------
+@post_router.post("/{post_id}/like", response_model=NoContentResponse)
+def create_like(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    post_id: UUID,
+):
+    post = session.get(Post, post_id)
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    # Check if the post is already liked
+    existing_like = session.exec(
+        select(Like).where(Like.post_id == post_id, Like.author_id == current_user.id)
+    ).one_or_none()
+
+    if existing_like:
+        raise HTTPException(status_code=400, detail="Post already liked")
+
+    like = Like(author_id=current_user.id, post_id=post_id)
+
+    session.add(like)
+    session.commit()
+
+    return NoContentResponse(success=True)
+
+
+# ----------DELETE A LIKE---------------
+@post_router.delete("/{post_id}/like", response_model=NoContentResponse)
+def delete_like(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    post_id: UUID,
+):
+    existing_like = session.exec(
+        select(Like).where(Like.author_id == current_user.id, post_id == post_id)
+    ).one_or_none()
+
+    if not existing_like:
+        raise HTTPException(status_code=404, detail="Like not found")
+
+    session.delete(existing_like)
+    session.commit()
+
+    return NoContentResponse(success=True)
