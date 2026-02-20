@@ -6,6 +6,7 @@ from fastapi import (
     Response,
     Cookie,
     BackgroundTasks,
+    Request,
 )
 from app.models import User, EmailVerification, Profile
 from ..schemas import UserCreate, UserPublic, EmailVerificationCreate, Token
@@ -25,6 +26,7 @@ from ..helpers.email import send_email_verification, send_email_welcome
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 import jwt
+from pprint import pprint
 
 auth_router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -33,7 +35,7 @@ password_hasher = PasswordHash.recommended()
 
 # -------------USER REGISTRATION---------------
 @auth_router.post(
-    "/sign-up", status_code=status.HTTP_201_CREATED, response_model=UserPublic
+    "/sign-up/", status_code=status.HTTP_201_CREATED, response_model=UserPublic
 )
 async def create_user(
     user: Annotated[UserCreate, Depends(validate_user_creation)], session: SessionDep
@@ -67,7 +69,8 @@ async def create_user(
     return user_db
 
 
-@auth_router.post("/email-verification")
+# -------------EMAIL VERIFICATION---------------
+@auth_router.post("/email-verification/")
 def verify_email_code(
     data: EmailVerificationCreate,
     session: SessionDep,
@@ -111,7 +114,7 @@ def verify_email_code(
 
 
 # --------------USER LOGIN-----------------
-@auth_router.post("/login", response_model=Token)
+@auth_router.post("/login/", response_model=Token)
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: SessionDep,
@@ -141,11 +144,11 @@ def login(
 
     response.set_cookie(
         key="refresh_token",
-        value=user.refresh_token,
+        value=refresh_token,
         max_age=REFRESH_COOKIE_MAX_AGE,
         httponly=True,
         secure=settings.PY_ENV == "prod",
-        samesite="lax" if settings.PY_ENV == "dev" else None,
+        samesite="lax" if settings.PY_ENV == "dev" else "none",
         path="/",
     )
 
@@ -153,9 +156,10 @@ def login(
 
 
 # ------------------REFRESH ACCESS TOKEN----------------
-@auth_router.post("/refresh", response_model=Token)
+@auth_router.post("/refresh/", response_model=Token)
 def refresh_access_token(
     session: SessionDep,
+    response: Response,
     refresh_token: Annotated[str | None, Cookie()] = None,
 ):
     refresh_exception = HTTPException(
@@ -185,6 +189,7 @@ def refresh_access_token(
         raise refresh_exception
 
     if user_to_refresh.refresh_token != refresh_token:
+        print("❌Raise here")
         raise refresh_exception
 
     jwt_payload = {"sub": str(user_to_refresh.id)}
@@ -197,11 +202,24 @@ def refresh_access_token(
     session.commit()
 
     access_token = create_access_token(jwt_payload)
+
+    REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days in seconds
+
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        max_age=REFRESH_COOKIE_MAX_AGE,
+        httponly=True,
+        secure=settings.PY_ENV == "prod",
+        samesite="lax" if settings.PY_ENV == "dev" else "none",
+        path="/",
+    )
+
     return Token(access_token=access_token, token_type="bearer")
 
 
 # -----------------USER LOGOUT------------------
-@auth_router.post("/logout", status_code=204)
+@auth_router.post("/logout/", status_code=204)
 def logout(
     response: Response,
     session: SessionDep,

@@ -92,7 +92,7 @@ def get_all_profiles(session: SessionDep):
 
 
 # ------------GET THE CONNECTED PROFILE---------------
-@profile_router.get("/me", response_model=ProfilePublic)
+@profile_router.get("/me/", response_model=ProfilePublic)
 def get_me(
     current_user: Annotated[Profile, Depends(get_current_verified_user)],
     session: SessionDep,
@@ -105,7 +105,7 @@ def get_me(
 
 
 # ------------GET ANY PROFILE---------------
-@profile_router.get("/{profile_id}", response_model=ProfilePublic)
+@profile_router.get("/{profile_id}/", response_model=ProfilePublic)
 def get_profile(session: SessionDep, profile_id: UUID):
     profile = session.get(profile_id)
 

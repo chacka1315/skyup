@@ -1,15 +1,38 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Form, UploadFile, File
 from app.deps import get_current_verified_user, SessionDep
-from app.models import User, Post, Relation, Bookmark, Like
-from sqlmodel import select, or_, func, and_, col, desc
+from app.models import User, Post, Relation, Bookmark, Like, Profile
+from sqlmodel import select, or_, func, and_, col, desc, case
+from sqlalchemy.orm import selectinload
+from ..helpers.subqueries import (
+    reply_count_subq,
+    likes_count_subq,
+    bookmarks_count_subq,
+    get_is_bookmarked_by_me_subq,
+    get_is_liked_by_me_subq,
+)
 from typing import Annotated
 from uuid import UUID
-from ..schemas import PostPublic, PostUpdate, NoContentResponse, BookmarkPublic
+from ..schemas import (
+    PostPublic,
+    PostPublicWithAuthor,
+    PostUpdate,
+    NoContentResponse,
+    BookmarkPublic,
+    UserPublicWithProfile,
+    UserPublic,
+    ProfilePublic,
+    PostAuthorProfile,
+    PostAuthor,
+)
 from ..helpers.cloudinary import (
     validate_media,
     upload_to_cloudinary,
     delete_from_cloudinary,
 )
+from pprint import pprint
+from sqlalchemy import select as sa_select
+from sqlalchemy.orm import selectinload
+
 
 post_router = APIRouter(
     prefix="/api/posts",
@@ -19,7 +42,8 @@ post_router = APIRouter(
 
 
 # ----------CREATE A NEW POST---------------
-@post_router.post("/", response_model=PostPublic)
+# , response_model=PostPublicWithAuthor
+@post_router.post("/")
 async def create_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -44,11 +68,45 @@ async def create_post(
     session.commit()
     session.refresh(post_db)
 
-    return post_db
+    is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
+    is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
+
+    post_res = session.exec(
+        select(
+            Post,
+            likes_count_subq,
+            reply_count_subq,
+            bookmarks_count_subq,
+            is_liked_by_me_subq,
+            is_bookmarked_by_me_subq,
+        )
+        .options(selectinload(Post.author).selectinload(User.profile))
+        .where(Post.id == post_db.id)
+    ).one()
+
+    likes_count = post_res[1]
+    replies_count = post_res[2]
+    bookmarks_count = post_res[3]
+    is_bookmarked_by_me = post_res[4]
+    is_liked_by_me = post_res[5]
+    author_profile = PostAuthorProfile(**post_res[0].author.profile.model_dump())
+    author = PostAuthor(**post_res[0].author.model_dump(), profile=author_profile)
+
+    post_public = PostPublicWithAuthor(
+        **post_db.model_dump(),
+        author=author,
+        likes_count=likes_count,
+        is_liked_by_me=bool(is_liked_by_me),
+        bookmarks_count=bookmarks_count,
+        is_bookmarked_by_me=bool(is_bookmarked_by_me),
+        replies_count=replies_count,
+    )
+
+    return post_public
 
 
 # ----------UPDATE POST---------------
-@post_router.put("/{post_id}", response_model=PostPublic)
+@post_router.put("/{post_id}/", response_model=PostPublic)
 async def update_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -77,7 +135,7 @@ async def update_post(
 
 # ----------DELETE POST---------------
 @post_router.delete(
-    "/{post_id}",
+    "/{post_id}/",
     response_model=NoContentResponse,
 )
 async def delete_post(
@@ -105,7 +163,7 @@ async def delete_post(
 
 
 # ----------GET FEED POSTS---------------
-@post_router.get("/", response_model=list[PostPublic])
+@post_router.get("/", response_model=list[PostPublicWithAuthor])
 # TODO: Implement filtering (limit, offset, query)
 def get_feed_posts(
     session: SessionDep,
@@ -140,18 +198,54 @@ def get_feed_posts(
     user_friend_ids = list(map(get_friend_id, user_relations))
     user_friend_ids.append(current_user.id)
 
-    posts = session.exec(
-        select(Post)
+    is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
+    is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
+
+    posts_res = session.exec(
+        select(
+            Post,
+            likes_count_subq,
+            reply_count_subq,
+            bookmarks_count_subq,
+            is_liked_by_me_subq,
+            is_bookmarked_by_me_subq,
+        )
+        .options(selectinload(Post.author).selectinload(User.profile))
         .where(col(Post.author_id).in_(user_friend_ids))
         .order_by(desc(Post.created_at))
     ).all()
 
-    return posts
+    posts_public = []
+
+    for (
+        post,
+        likes_count,
+        replies_count,
+        bookmarks_count,
+        is_bookmarked_by_me,
+        is_liked_by_me,
+    ) in posts_res:
+        author_profile = PostAuthorProfile(**post.author.profile.model_dump())
+        author = PostAuthor(**post.author.model_dump(), profile=author_profile)
+
+        post_public = PostPublicWithAuthor(
+            **post.model_dump(),
+            author=author,
+            likes_count=likes_count,
+            is_liked_by_me=bool(is_liked_by_me),
+            bookmarks_count=bookmarks_count,
+            is_bookmarked_by_me=bool(is_bookmarked_by_me),
+            replies_count=replies_count,
+        )
+
+        posts_public.append(post_public)
+
+    return posts_public
 
 
 # ----------GET SINGLE POST---------------
 @post_router.get(
-    "/{post_id}",
+    "/{post_id}/",
     response_model=PostPublic,
 )
 def get_single_post(
@@ -167,7 +261,7 @@ def get_single_post(
 
 
 # ----------BOOKMARK A POST---------------
-@post_router.post("/{post_id}/bookmark", response_model=NoContentResponse)
+@post_router.post("/{post_id}/bookmark/", response_model=NoContentResponse)
 def create_bookmark(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -199,7 +293,7 @@ def create_bookmark(
 
 
 # ----------DELETE BOOKMARK---------------
-@post_router.delete("/{post_id}/bookmark", response_model=NoContentResponse)
+@post_router.delete("/{post_id}/bookmark/", response_model=NoContentResponse)
 def delete_bookmark(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -221,7 +315,7 @@ def delete_bookmark(
 
 
 # ----------LIKE A POST---------------
-@post_router.post("/{post_id}/like", response_model=NoContentResponse)
+@post_router.post("/{post_id}/like/", response_model=NoContentResponse)
 def create_like(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -249,7 +343,7 @@ def create_like(
 
 
 # ----------DELETE A LIKE---------------
-@post_router.delete("/{post_id}/like", response_model=NoContentResponse)
+@post_router.delete("/{post_id}/like/", response_model=NoContentResponse)
 def delete_like(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],

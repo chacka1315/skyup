@@ -39,7 +39,7 @@ def create_reply(
 
 
 # ----------UPDATE REPLY---------------
-@reply_router.put("/{reply_id}", response_model=ReplyPublic)
+@reply_router.put("/{reply_id}/", response_model=ReplyPublic)
 async def create_reply(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -63,7 +63,7 @@ async def create_reply(
 
 # ----------DELETE REPLY---------------
 @reply_router.delete(
-    "/{reply_id}",
+    "/{reply_id}/",
     response_model=NoContentResponse,
 )
 async def create_reply(
@@ -99,7 +99,7 @@ def get_post_replies(
 
 # ----------GET SINGLE REPLY---------------
 @reply_router.get(
-    "/{reply_id}",
+    "/{reply_id}/",
     response_model=ReplyPublic,
 )
 def get_single_reply(

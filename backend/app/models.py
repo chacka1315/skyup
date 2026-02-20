@@ -7,6 +7,7 @@ from sqlmodel import (
     text,
     UniqueConstraint,
     Boolean,
+    Relationship,
 )
 from datetime import datetime
 from uuid import UUID
@@ -33,6 +34,9 @@ class User(UserBase, table=True):
         sa_column=Column(DateTime(timezone=True), onupdate=func.now(), nullable=True),
     )
 
+    posts: list["Post"] = Relationship(back_populates="author")
+    profile: "Profile" = Relationship()
+
 
 class Profile(ProfileBase, table=True):
     __tablename__ = "profiles"
@@ -43,6 +47,8 @@ class Profile(ProfileBase, table=True):
     banner_url: str | None = None
     avatar_id: str | None = None
     banner_id: str | None = None
+
+    # user: User = Relationship(back_populates="profile")
 
 
 class Post(PostBase, table=True):
@@ -57,6 +63,9 @@ class Post(PostBase, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )
+
+    author: User = Relationship(back_populates="posts")
+    likes: list["Like"] = Relationship(back_populates="post")
 
 
 class Reply(ReplyBase, table=True):
@@ -107,6 +116,9 @@ class Like(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("author_id", "post_id", name="unique_like_post"),
     )
+
+    # user: "User" = Relationship(back_populates="likes")
+    post: "Post" = Relationship(back_populates="likes")
 
 
 class EmailVerification(SQLModel, table=True):

@@ -61,7 +61,7 @@ def create_relation(
 
 
 # ----------UPDATE FOLLOW REQUEST STATUS---------------
-@relation_router.put("/{relation_id}", status_code=status.HTTP_202_ACCEPTED)
+@relation_router.put("/{relation_id}/", status_code=status.HTTP_202_ACCEPTED)
 def accept_relation(
     relation_id: UUID,
     data: RelationUpdate,
@@ -93,7 +93,7 @@ def accept_relation(
 
 
 # ----------DELETE A RELATION---------------
-@relation_router.delete("/{relation_id}", status_code=status.HTTP_204_NO_CONTENT)
+@relation_router.delete("/{relation_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_relation(
     relation_id: UUID,
     current_user: Annotated[User, Depends(get_current_verified_user)],

@@ -107,7 +107,7 @@ def get_current_user(
             raise credentials_exception
         token_data = TokenData(user_id=user_id)
     except jwt.InvalidTokenError as err:
-        print("🔅JWT ERR:", err)
+        print("🔅JWT ERR when getting curr user:", err)
         raise credentials_exception
 
     user = session.get(User, token_data.user_id)
