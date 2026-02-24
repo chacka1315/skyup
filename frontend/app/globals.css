@@ -65,6 +65,7 @@
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
+  --popover-notif: #e6f0f5;
   --popover-foreground: oklch(0.145 0 0);
   --primary: #1da1f2;
   --bg-primary: #1da1f2;

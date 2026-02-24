@@ -8,8 +8,10 @@ export interface PostAuthorI {
   email: string;
   id: string;
   created_at: string;
+  is_my_friend: boolean;
   profile: PostAuthorProfileI;
 }
+
 export interface UserProfileI extends PostAuthorProfileI {
   country: string | null;
   birthday: string | null;

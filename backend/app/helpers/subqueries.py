@@ -1,5 +1,5 @@
 from sqlmodel import func
-from ..models import Post, Like, Bookmark, Reply, User
+from ..models import Post, Like, Bookmark, Reply, User, Relation
 from sqlalchemy import select as sa_select
 
 likes_count_subq = (
@@ -12,6 +12,7 @@ likes_count_subq = (
 bookmarks_count_subq = (
     sa_select(func.count(Bookmark.id))
     .where(Bookmark.post_id == Post.id)
+    .correlate(Post)
     .scalar_subquery()
     .label("bookmarks_count")
 )
@@ -40,6 +41,7 @@ def get_is_bookmarked_by_me_subq(current_user: User):
         sa_select(func.count(Bookmark.id))
         .where(Bookmark.post_id == Post.id)
         .where(Bookmark.owner_id == current_user.id)
+        .correlate(Post)
         .scalar_subquery()
         .label("is_bookmarked_by_me")
     )

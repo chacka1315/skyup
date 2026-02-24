@@ -133,7 +133,7 @@ class PostUpdate(PostBase):
 
 
 # =================RELATION SCHEMAS=======================
-RelationStatus = Literal["pending", "accepted", "rejected"]
+RelationStatus = Literal["follow", "follow_back"]
 
 
 class RelationBase(SQLModel):
@@ -142,7 +142,7 @@ class RelationBase(SQLModel):
     )
     sender_id: UUID = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")
     status: RelationStatus = Field(
-        default="pending",
+        default="follow",
         sa_column=Column(String, nullable=False),
     )
 
@@ -152,7 +152,7 @@ class RelationCreate(SQLModel):
 
 
 class RelationUpdate(SQLModel):
-    status: Literal["accepted", "rejected"]
+    status: Literal["follow_back", "follow"]
 
 
 # =================REPLY SCHEMAS=======================
@@ -166,13 +166,6 @@ class ReplyCreate(ReplyBase):
 
 class ReplyUpdate(ReplyBase):
     pass
-
-
-class ReplyPublic(ReplyBase):
-    id: UUID
-    author_id: UUID
-    post_id: UUID
-    created_at: datetime
 
 
 # =================EMAIL VERIFICATION SCHEMAS=======================

@@ -189,7 +189,7 @@ def refresh_access_token(
         raise refresh_exception
 
     if user_to_refresh.refresh_token != refresh_token:
-        print("❌Raise here")
+        print("❌Raise here, refresh token no match")
         raise refresh_exception
 
     jwt_payload = {"sub": str(user_to_refresh.id)}

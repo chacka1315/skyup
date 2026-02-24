@@ -14,3 +14,12 @@ export interface PostI {
   is_bookmarked_by_me: boolean;
   author: PostAuthorI;
 }
+
+export interface ReplyI {
+  post_id: string;
+  created_at: string;
+  content: string;
+  id: string;
+  author_id: string;
+  author: PostAuthorI;
+}

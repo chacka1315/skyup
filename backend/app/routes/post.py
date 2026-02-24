@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Form, UploadFile, File
 from app.deps import get_current_verified_user, SessionDep
-from app.models import User, Post, Relation, Bookmark, Like, Profile
-from sqlmodel import select, or_, func, and_, col, desc, case
+from app.models import User, Post, Relation, Bookmark, Like
+from sqlmodel import select, or_, func, and_, col, desc
 from sqlalchemy.orm import selectinload
 from ..helpers.subqueries import (
     reply_count_subq,
@@ -13,16 +13,13 @@ from ..helpers.subqueries import (
 from typing import Annotated
 from uuid import UUID
 from ..schemas import (
-    PostPublic,
     PostPublicWithAuthor,
+    SinglePostPublicWithAuthor,
     PostUpdate,
     NoContentResponse,
-    BookmarkPublic,
-    UserPublicWithProfile,
-    UserPublic,
-    ProfilePublic,
     PostAuthorProfile,
     PostAuthor,
+    SinglePostAuthor,
 )
 from ..helpers.cloudinary import (
     validate_media,
@@ -32,7 +29,7 @@ from ..helpers.cloudinary import (
 from pprint import pprint
 from sqlalchemy import select as sa_select
 from sqlalchemy.orm import selectinload
-
+from ..helpers.posts import get_post_metrics
 
 post_router = APIRouter(
     prefix="/api/posts",
@@ -42,8 +39,8 @@ post_router = APIRouter(
 
 
 # ----------CREATE A NEW POST---------------
-# , response_model=PostPublicWithAuthor
-@post_router.post("/")
+#
+@post_router.post("/", response_model=PostPublicWithAuthor)
 async def create_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -68,45 +65,24 @@ async def create_post(
     session.commit()
     session.refresh(post_db)
 
-    is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
-    is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
-
-    post_res = session.exec(
-        select(
-            Post,
-            likes_count_subq,
-            reply_count_subq,
-            bookmarks_count_subq,
-            is_liked_by_me_subq,
-            is_bookmarked_by_me_subq,
-        )
-        .options(selectinload(Post.author).selectinload(User.profile))
-        .where(Post.id == post_db.id)
-    ).one()
-
-    likes_count = post_res[1]
-    replies_count = post_res[2]
-    bookmarks_count = post_res[3]
-    is_bookmarked_by_me = post_res[4]
-    is_liked_by_me = post_res[5]
-    author_profile = PostAuthorProfile(**post_res[0].author.profile.model_dump())
-    author = PostAuthor(**post_res[0].author.model_dump(), profile=author_profile)
+    author_profile = PostAuthorProfile(**current_user.profile.model_dump())
+    author = PostAuthor(**current_user.model_dump(), profile=author_profile)
 
     post_public = PostPublicWithAuthor(
         **post_db.model_dump(),
         author=author,
-        likes_count=likes_count,
-        is_liked_by_me=bool(is_liked_by_me),
-        bookmarks_count=bookmarks_count,
-        is_bookmarked_by_me=bool(is_bookmarked_by_me),
-        replies_count=replies_count,
+        likes_count=0,
+        is_liked_by_me=False,
+        bookmarks_count=0,
+        is_bookmarked_by_me=False,
+        replies_count=0,
     )
 
     return post_public
 
 
 # ----------UPDATE POST---------------
-@post_router.put("/{post_id}/", response_model=PostPublic)
+@post_router.put("/{post_id}/", response_model=NoContentResponse)
 async def update_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -128,9 +104,9 @@ async def update_post(
     existing_post.content = post.content
     session.add(existing_post)
     session.commit()
-    session.refreh(existing_post)
+    session.refresh(existing_post)
 
-    return existing_post
+    return NoContentResponse(success=True)
 
 
 # ----------DELETE POST---------------
@@ -222,8 +198,8 @@ def get_feed_posts(
         likes_count,
         replies_count,
         bookmarks_count,
-        is_bookmarked_by_me,
         is_liked_by_me,
+        is_bookmarked_by_me,
     ) in posts_res:
         author_profile = PostAuthorProfile(**post.author.profile.model_dump())
         author = PostAuthor(**post.author.model_dump(), profile=author_profile)
@@ -243,23 +219,6 @@ def get_feed_posts(
     return posts_public
 
 
-# ----------GET SINGLE POST---------------
-@post_router.get(
-    "/{post_id}/",
-    response_model=PostPublic,
-)
-def get_single_post(
-    session: SessionDep,
-    post_id: UUID,
-):
-    post = session.get(Post, post_id)
-
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
-
-    return post
-
-
 # ----------BOOKMARK A POST---------------
 @post_router.post("/{post_id}/bookmark/", response_model=NoContentResponse)
 def create_bookmark(
@@ -267,7 +226,6 @@ def create_bookmark(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     post_id: UUID,
 ):
-
     # Check if the post we want to bookmark exists
     post = session.get(Post, post_id)
 
@@ -290,6 +248,123 @@ def create_bookmark(
     session.commit()
 
     return NoContentResponse(success=True)
+
+
+# ----------GET BOOKMARKED POSTS---------------
+@post_router.get("/bookmarks/", response_model=list[PostPublicWithAuthor])
+def get_bookmarked_posts(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+):
+
+    is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
+    is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
+
+    posts_res = session.exec(
+        select(
+            Post,
+            likes_count_subq,
+            reply_count_subq,
+            bookmarks_count_subq,
+            is_liked_by_me_subq,
+            is_bookmarked_by_me_subq,
+        )
+        .options(selectinload(Post.author).selectinload(User.profile))
+        .join(Bookmark, Bookmark.post_id == Post.id)
+        .where(Bookmark.owner_id == current_user.id)
+        .order_by(desc(Bookmark.created_at))
+    ).all()
+
+    bookmarks_public = []
+
+    for (
+        post,
+        likes_count,
+        replies_count,
+        bookmarks_count,
+        is_liked_by_me,
+        is_bookmarked_by_me,
+    ) in posts_res:
+        author_profile = PostAuthorProfile(**post.author.profile.model_dump())
+        author = PostAuthor(**post.author.model_dump(), profile=author_profile)
+
+        post_public = PostPublicWithAuthor(
+            **post.model_dump(),
+            author=author,
+            likes_count=likes_count,
+            is_liked_by_me=bool(is_liked_by_me),
+            bookmarks_count=bookmarks_count,
+            is_bookmarked_by_me=bool(is_bookmarked_by_me),
+            replies_count=replies_count,
+        )
+
+        bookmarks_public.append(post_public)
+
+    return bookmarks_public
+
+
+# ----------GET SINGLE POST---------------
+@post_router.get(
+    "/{post_id}/",
+    response_model=SinglePostPublicWithAuthor,
+)
+def get_single_post(
+    session: SessionDep,
+    post_id: UUID,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+):
+    is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
+    is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
+
+    post_res = session.exec(
+        select(
+            Post,
+            likes_count_subq,
+            reply_count_subq,
+            bookmarks_count_subq,
+            is_bookmarked_by_me_subq,
+            is_liked_by_me_subq,
+        ).where(Post.id == post_id)
+    ).one_or_none()
+
+    if not post_res:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    post: Post = post_res[0]
+
+    existing_relation = session.exec(
+        select(Relation).where(
+            or_(
+                Relation.sender_id == post.author_id,
+                Relation.sender_id == current_user.id,
+            ),
+            or_(
+                Relation.receiver_id == post.author_id,
+                Relation.receiver_id == current_user.id,
+            ),
+        )
+    ).one_or_none()
+
+    post_metrics = get_post_metrics(post_res)
+
+    author_profile = PostAuthorProfile(**post_res[0].author.profile.model_dump())
+    author = SinglePostAuthor(
+        **post_res[0].author.model_dump(),
+        profile=author_profile,
+        is_my_friend=True if existing_relation else False,
+    )
+
+    post_public = SinglePostPublicWithAuthor(
+        **post_res[0].model_dump(),
+        author=author,
+        likes_count=post_metrics.likes_count,
+        replies_count=post_metrics.replies_count,
+        bookmarks_count=post_metrics.bookmarks_count,
+        is_liked_by_me=post_metrics.is_liked_by_me,
+        is_bookmarked_by_me=post_metrics.is_bookmarked_by_me,
+    )
+
+    return post_public
 
 
 # ----------DELETE BOOKMARK---------------
@@ -350,7 +425,7 @@ def delete_like(
     post_id: UUID,
 ):
     existing_like = session.exec(
-        select(Like).where(Like.author_id == current_user.id, post_id == post_id)
+        select(Like).where(Like.author_id == current_user.id, Like.post_id == post_id)
     ).one_or_none()
 
     if not existing_like:

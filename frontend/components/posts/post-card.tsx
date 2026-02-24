@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useState } from 'react';
 import { PostI, PostAuthorI } from '@/types';
 import { formatPostDate } from '@/lib/utils';
 import { Separator } from '../ui/separator';
@@ -8,27 +7,23 @@ import PostFooter from './post-footer';
 import Image from 'next/image';
 import { useInView } from 'react-intersection-observer';
 import UserAvatar from '../user-avatar';
-import { Button } from '../ui/button';
-import {
-  ArchiveXIcon,
-  BookmarkIcon,
-  EllipsisVerticalIcon,
-  MessagesSquareIcon,
-  SquarePenIcon,
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { useQuery } from '@tanstack/react-query';
-import { currentUserOptions } from '@/lib/query-options';
+import PostActionsMenu from './post-actions-menu';
+import { useState } from 'react';
+import EditPost from './edit-post';
+import Link from 'next/link';
 
-export default function PostsCard({ post }: { post: PostI }) {
+export default function PostsCard({
+  post,
+  type = 'post',
+}: {
+  post: PostI;
+  type?: 'post' | 'bookmark';
+}) {
   const { ref: postRef, inView: postIsInView } = useInView({
     triggerOnce: true,
   });
+
+  const [isEditing, setIsEditing] = useState(false);
 
   return (
     <>
@@ -37,14 +32,26 @@ export default function PostsCard({ post }: { post: PostI }) {
         <UserAvatar user={post.author} />
         <div className="w-full">
           <div className="flex justify-between items-center">
-            <PostAuthor author={post.author} createdAt={post.created_at} />
-            <PostActionsMenu post={post} />
+            <Link href={`/posts/${post.id}`}>
+              <PostAuthor author={post.author} createdAt={post.created_at} />
+            </Link>
+            <PostActionsMenu
+              post={post}
+              setIsEditing={setIsEditing}
+              postCardType={type}
+            />
           </div>
 
           <section>
-            <p className="font-normal text-[13px] md:text-[14px]">
-              {post.content}
-            </p>
+            {isEditing ? (
+              <EditPost setIsEditing={setIsEditing} post={post} />
+            ) : (
+              <Link href={`/posts/${post.id}`}>
+                <p className="font-normal text-[13px] md:text-[14px]">
+                  {post.content}
+                </p>
+              </Link>
+            )}
             {post.media_url && (
               <div className="w-full aspect-video relative mt-1">
                 {postIsInView && <PostMedia post={post} />}
@@ -68,7 +75,7 @@ function PostAuthor({ author, createdAt }: PostAuthorProps) {
     <section className=" text-[13px] md:text-[15px] flex items-center gap-2">
       <p className="font-semibold">{author.profile.name}</p>
       <p className="text-gray-500">@{author.username}</p>
-      <span className="h-1 w-1 bg-gray-500 rounded-full"></span>
+      <span className="h-0.5 w-0.5 bg-gray-500 rounded-full"></span>
       <p className=" text-gray-500">{formatPostDate(createdAt)}</p>
     </section>
   );
@@ -97,42 +104,4 @@ function PostMedia({ post }: { post: PostI }) {
   } else {
     return null;
   }
-}
-
-function PostActionsMenu({ post }: { post: PostI }) {
-  const { data: currentUser } = useQuery(currentUserOptions);
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost">
-          <EllipsisVerticalIcon />
-        </Button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent>
-        <DropdownMenuItem>
-          <MessagesSquareIcon /> View replies
-        </DropdownMenuItem>
-
-        {!post.is_bookmarked_by_me && post.author_id !== currentUser?.id && (
-          <DropdownMenuItem>
-            <BookmarkIcon /> Bookmark
-          </DropdownMenuItem>
-        )}
-        {post.author_id == currentUser?.id && (
-          <>
-            <DropdownMenuItem>
-              <SquarePenIcon />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
-              <ArchiveXIcon />
-              Delete
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 }

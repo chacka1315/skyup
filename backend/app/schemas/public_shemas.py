@@ -7,6 +7,7 @@ from .models_schemas import (
     RelationBase,
     RelationStatus,
     ProfileBase,
+    ReplyBase,
 )
 from typing import Literal
 
@@ -44,6 +45,10 @@ class PostAuthor(UserPublic):
     profile: PostAuthorProfile
 
 
+class SinglePostAuthor(PostAuthor):
+    is_my_friend: bool
+
+
 class PostPublic(PostBase):
     id: UUID
     author_id: UUID
@@ -59,6 +64,23 @@ class PostPublic(PostBase):
 
 class PostPublicWithAuthor(PostPublic):
     author: PostAuthor
+
+
+class SinglePostPublicWithAuthor(PostPublic):
+    author: SinglePostAuthor
+
+
+class ReplyPublic(ReplyBase):
+    id: UUID
+    author_id: UUID
+    post_id: UUID
+    created_at: datetime
+    author: PostAuthor
+
+
+class PostPublicWithReplies(BaseModel):
+    post: PostPublicWithAuthor
+    replies: list[ReplyPublic]
 
 
 class RelationPublic(RelationBase):

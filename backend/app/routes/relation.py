@@ -6,6 +6,7 @@ from app.schemas import (
     RelationPublic,
     RelationUpdate,
     RelationCreate,
+    NoContentResponse,
 )
 from app.models import User, Relation
 from sqlmodel import select, or_
@@ -20,7 +21,7 @@ relation_router = APIRouter(
 
 
 # ----------CREATE A NEW RELATION---------------
-@relation_router.post("/")
+@relation_router.post("/", response_model=RelationPublic)
 def create_relation(
     data: RelationCreate,
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -49,19 +50,20 @@ def create_relation(
     if existing_relation:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot send this request",
+            detail="Cannot send this follow request",
         )
 
-    # Create a new relation. By default status is 'pending'
+    # Create a new relation. By default status is 'follow'
     relation = Relation(sender_id=current_user.id, receiver_id=receiver.id)
     session.add(relation)
     session.commit()
+    session.refresh(relation)
 
-    return {"success": True}
+    return relation
 
 
 # ----------UPDATE FOLLOW REQUEST STATUS---------------
-@relation_router.put("/{relation_id}/", status_code=status.HTTP_202_ACCEPTED)
+@relation_router.put("/{relation_id}/", response_model=NoContentResponse)
 def accept_relation(
     relation_id: UUID,
     data: RelationUpdate,
@@ -71,7 +73,6 @@ def accept_relation(
     pending_relation = session.exec(
         select(Relation).where(
             Relation.id == relation_id,
-            Relation.status == "pending",
             Relation.receiver_id == current_user.id,
         )
     ).one_or_none()

@@ -30,6 +30,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import FieldError from '@/components/field-error';
 import { ApiError } from '@/types/errors';
+import { SuccessAuth } from '@/types/auth';
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -59,11 +60,12 @@ export default function SignIn() {
     }
 
     try {
-      await axios.post(
+      const res = await axios.post<SuccessAuth>(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login/`,
         formData,
         { withCredentials: true },
       );
+      localStorage.setItem('access_token', res.data.access_token);
 
       router.push('/');
     } catch (error) {

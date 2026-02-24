@@ -65,7 +65,8 @@ class Post(PostBase, table=True):
     )
 
     author: User = Relationship(back_populates="posts")
-    likes: list["Like"] = Relationship(back_populates="post")
+    replies: list["Reply"] = Relationship()
+    # likes: list["Like"] = Relationship(back_populates="post")
 
 
 class Reply(ReplyBase, table=True):
@@ -78,6 +79,7 @@ class Reply(ReplyBase, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )
+    author: User = Relationship()
 
 
 class Bookmark(SQLModel, table=True):
@@ -104,6 +106,12 @@ class Relation(RelationBase, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )
+    receiver: User = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Relation.receiver_id]"}
+    )
+    sender: User = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Relation.sender_id]"}
+    )
 
 
 class Like(SQLModel, table=True):
@@ -118,7 +126,7 @@ class Like(SQLModel, table=True):
     )
 
     # user: "User" = Relationship(back_populates="likes")
-    post: "Post" = Relationship(back_populates="likes")
+    # post: "Post" = Relationship(back_populates="likes")
 
 
 class EmailVerification(SQLModel, table=True):

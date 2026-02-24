@@ -33,6 +33,7 @@ export function isAuthPage(pathname: string): boolean {
 export function formatPostDate(createdAt: string): string {
   const date = new Date(createdAt);
 
+  //TODO : Not verify the fist condition with isToday() but verify if the post released at most 24hours ago.
   if (isToday(date)) {
     return formatDistanceToNowStrict(date);
   } else if (isThisYear(date)) {
@@ -40,7 +41,19 @@ export function formatPostDate(createdAt: string): string {
     return `${formatedDate}.`;
   } else {
     let formatedDate = format(date, 'PPpp').split(',')[0];
-    formatedDate = `${formatedDate}. ${date.getFullYear.toString().slice(-1, -3)}`;
+    formatedDate = `${formatedDate}. ${date.getFullYear().toString().slice(2)}`;
     return formatedDate;
   }
+}
+
+export function formatSinglePostDate(createdAt: string): string {
+  const date = new Date(createdAt);
+  let formatedDate = format(date, 'PPpp').split(',')[0];
+  formatedDate = `${formatedDate}. ${date.getFullYear().toString().slice(2)}`;
+  return formatedDate;
+}
+
+export function formatPostTime(createdAt: string): string {
+  const date = new Date(createdAt);
+  return format(date, 'p').split(' ')[0];
 }

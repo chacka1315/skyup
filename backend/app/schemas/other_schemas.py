@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
+from .public_shemas import PostAuthor
 
 
 class NoContentResponse(BaseModel):
@@ -27,3 +28,12 @@ class MultipleImagesResponse(BaseModel):
     success: bool
     images: list[CloudinaryUploadResponse]
     total: int
+
+
+class PostMetrics(BaseModel):
+    likes_count: int
+    replies_count: int
+    bookmarks_count: int
+    is_liked_by_me: bool
+    is_bookmarked_by_me: bool
+    author: PostAuthor
