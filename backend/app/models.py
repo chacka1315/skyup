@@ -106,11 +106,15 @@ class Relation(RelationBase, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )
-    receiver: User = Relationship(
-        sa_relationship_kwargs={"foreign_keys": "[Relation.receiver_id]"}
+    following: User = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Relation.following_id]"}
     )
-    sender: User = Relationship(
-        sa_relationship_kwargs={"foreign_keys": "[Relation.sender_id]"}
+    follower: User = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Relation.follower_id]"}
+    )
+
+    __table_args__ = (
+        UniqueConstraint("follower_id", "following_id", name="unique_follow_relation"),
     )
 
 

@@ -14,7 +14,7 @@ export function PostSkeleton() {
 
 export function PostsListSkeleton() {
   return (
-    <div className="h-screen w-full  flex flex-col items-center gap-8">
+    <div className="h-screen w-full  flex flex-col items-center gap-8 mt-1">
       <PostSkeleton />
       <PostSkeleton />
       <PostSkeleton />

@@ -45,3 +45,15 @@ def get_is_bookmarked_by_me_subq(current_user: User):
         .scalar_subquery()
         .label("is_bookmarked_by_me")
     )
+
+
+def get_is_followed_by_me_subq(current_user: User):
+    return (
+        sa_select(func.count(Relation.id))
+        .where(
+            Relation.follower_id == current_user.id, Relation.following_id == User.id
+        )
+        .correlate(User)
+        .scalar_subquery()
+        .label("is_followed_by_me")
+    )

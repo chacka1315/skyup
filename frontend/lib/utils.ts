@@ -11,22 +11,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function routeIsProtected(pathname: string): boolean {
-  const PROTECTED_ROUTES = ['/dashboard'];
-
-  for (const route of PROTECTED_ROUTES) {
-    if (pathname.startsWith(route)) {
-      return true;
-    }
+export function isProtectedRoute(pathname: string): boolean {
+  if (pathname === '/') {
+    return true;
   }
-  return false;
+
+  return (
+    pathname.startsWith('/users') ||
+    pathname.startsWith('/profiles') ||
+    pathname.startsWith('/posts') ||
+    pathname.startsWith('/bookmarks') ||
+    pathname.startsWith('/settings') ||
+    pathname.startsWith('/notifications')
+  );
 }
 
 export function isAuthPage(pathname: string): boolean {
   return (
     pathname.startsWith('/sign-in') ||
     pathname.startsWith('/sign-up') ||
-    pathname.startsWith('/email-verification')
+    pathname.startsWith('/account-verification')
   );
 }
 

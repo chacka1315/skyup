@@ -31,7 +31,7 @@ export default function PostsCard({
       <div className="flex items-start px-3 gap-2" ref={postRef}>
         <UserAvatar user={post.author} />
         <div className="w-full">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <Link href={`/posts/${post.id}`}>
               <PostAuthor author={post.author} createdAt={post.created_at} />
             </Link>

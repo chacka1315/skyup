@@ -34,7 +34,7 @@ export default function PostCard({ post }: { post: PostI }) {
           </div>
           <div className="flex items-center">
             {!(
-              post.author.is_my_friend || post.author.id === currentUser?.id
+              post.author.is_followed || post.author.id === currentUser?.id
             ) && (
               <Button
                 type="submit"

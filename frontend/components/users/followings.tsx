@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { clientAxios } from '@/lib/axios/axios-client';
 import { UserI } from '@/types';
 import UserCard from './user-card';
-import type { UserCardT } from '@/types';
 import { useFollowUser } from '@/hooks/use-follow';
 import {
   Empty,
@@ -16,15 +15,15 @@ import {
 } from '@/components/ui/empty';
 import { UserIcon } from 'lucide-react';
 
-export default function Followers() {
+export default function Followings() {
   const {
-    data: followers,
+    data: followings,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['users', 'followers'],
+    queryKey: ['users', 'followings'],
     queryFn: async () => {
-      const res = await clientAxios.get<UserI[]>('/relations/followers');
+      const res = await clientAxios.get<UserI[]>('/relations/followings');
       return res.data;
     },
     staleTime: 1000 * 60 * 10,
@@ -40,27 +39,27 @@ export default function Followers() {
     throw error;
   }
 
-  const followersList = followers?.map((f) => {
+  const followingsList = followings?.map((f) => {
     return (
-      <UserCard user={f} key={f.id} kind="follower" followFns={followFns} />
+      <UserCard kind="following" user={f} key={f.id} followFns={followFns} />
     );
   });
   return (
-    <TabsContent value="followers">
-      {followers?.length ? followersList : <NoFollowers />}
+    <TabsContent value="followings">
+      {!followingsList?.length ? <NoFollowings /> : followingsList}
     </TabsContent>
   );
 }
 
-function NoFollowers() {
+function NoFollowings() {
   return (
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <UserIcon />
         </EmptyMedia>
-        <EmptyTitle>No Followers Yet</EmptyTitle>
-        <EmptyDescription>No user is following your account.</EmptyDescription>
+        <EmptyTitle>No Followings Yet</EmptyTitle>
+        <EmptyDescription>You have not followed a user.</EmptyDescription>
       </EmptyHeader>
     </Empty>
   );

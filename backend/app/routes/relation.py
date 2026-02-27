@@ -1,41 +1,43 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Path
 from app.deps import get_current_verified_user, SessionDep
 from app.schemas import (
-    UserPublic,
-    RelationStatus,
+    RelationDelete,
+    RelationUserPublic,
     RelationPublic,
-    RelationUpdate,
     RelationCreate,
+    RelationProfile,
     NoContentResponse,
 )
 from app.models import User, Relation
 from sqlmodel import select, or_
+from sqlalchemy.orm import selectinload
 from typing import Annotated
 from uuid import UUID
+from ..helpers.subqueries import get_is_followed_by_me_subq
 
 relation_router = APIRouter(
     prefix="/api/relations",
-    tags=["Friendships, Users relations"],
+    tags=["Follows, Users relations"],
     dependencies=[Depends(get_current_verified_user)],
 )
 
 
-# ----------CREATE A NEW RELATION---------------
+# ----------CREATE A NEW FOLLOW---------------
 @relation_router.post("/", response_model=RelationPublic)
 def create_relation(
     data: RelationCreate,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     session: SessionDep,
 ):
-    receiver = session.get(User, data.receiver_id)
+    user_to_follow = session.get(User, data.following_id)
 
-    if not receiver or not receiver.is_verified:
+    if not user_to_follow or not user_to_follow.is_verified:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Receiver not found",
+            detail="User to follow not found",
         )
 
-    if receiver.id == current_user.id:
+    if user_to_follow.id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Connot follow yourself"
         )
@@ -43,7 +45,8 @@ def create_relation(
     # check if the relation already exist
     existing_relation = session.exec(
         select(Relation).where(
-            Relation.receiver_id == receiver.id, Relation.sender_id == current_user.id
+            Relation.following_id == user_to_follow.id,
+            Relation.follower_id == current_user.id,
         )
     ).one_or_none()
 
@@ -53,8 +56,8 @@ def create_relation(
             detail="Cannot send this follow request",
         )
 
-    # Create a new relation. By default status is 'follow'
-    relation = Relation(sender_id=current_user.id, receiver_id=receiver.id)
+    # Create a new relation.
+    relation = Relation(follower_id=current_user.id, following_id=user_to_follow.id)
     session.add(relation)
     session.commit()
     session.refresh(relation)
@@ -62,47 +65,21 @@ def create_relation(
     return relation
 
 
-# ----------UPDATE FOLLOW REQUEST STATUS---------------
-@relation_router.put("/{relation_id}/", response_model=NoContentResponse)
-def accept_relation(
-    relation_id: UUID,
-    data: RelationUpdate,
+# ----------DELETE A FOLLOW---------------
+@relation_router.delete("/", response_model=NoContentResponse)
+def delete_relation(
+    data: RelationDelete,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     session: SessionDep,
 ):
-    pending_relation = session.exec(
+    existing_relation = session.exec(
         select(Relation).where(
-            Relation.id == relation_id,
-            Relation.receiver_id == current_user.id,
+            Relation.follower_id == current_user.id,
+            Relation.following_id == data.following_id,
         )
     ).one_or_none()
 
-    if not pending_relation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pending relation not found",
-        )
-
-    new_status = data.status
-
-    pending_relation.status = new_status
-
-    session.add(pending_relation)
-    session.commit()
-
-    return {"success": True}
-
-
-# ----------DELETE A RELATION---------------
-@relation_router.delete("/{relation_id}/", status_code=status.HTTP_204_NO_CONTENT)
-def delete_relation(
-    relation_id: UUID,
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    session: SessionDep,
-):
-    existing_relation = session.get(Relation, relation_id)
-
-    if not existing_relation or existing_relation.sender_id != current_user.id:
+    if not existing_relation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation not found",
@@ -111,22 +88,51 @@ def delete_relation(
     session.delete(existing_relation)
     session.commit()
 
-    return {"success": True}
+    return NoContentResponse(success=True)
 
 
-# ----------GET CONNECTED USER RELATIONSHIPS---------------
-@relation_router.get("/")
-def get_all_relations(
+# ----------GET CONNECTED USER FOLLOWERS---------------
+@relation_router.get("/followers", response_model=list[RelationUserPublic])
+def get_all_followers(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     session: SessionDep,
 ):
-    relations = session.exec(
-        select(Relation).where(
-            or_(
-                Relation.sender_id == current_user.id,
-                Relation.receiver_id == current_user.id,
-            )
+    is_followed_by_me_subq = get_is_followed_by_me_subq(current_user)
+    followers_res = session.exec(
+        select(User, is_followed_by_me_subq)
+        .join(Relation, Relation.follower_id == User.id)
+        .options(selectinload(User.profile))
+        .where(
+            Relation.following_id == current_user.id,
         )
     ).all()
 
-    return relations
+    followers = []
+
+    for user, is_followed_by_me in followers_res:
+        followers.append(
+            RelationUserPublic(
+                **user.model_dump(),
+                profile=RelationProfile(**user.profile.model_dump()),
+                is_followed_by_me=bool(is_followed_by_me)
+            )
+        )
+    return followers
+
+
+# ----------GET CONNECTED USER FOLLOWINGS---------------
+@relation_router.get("/followings", response_model=list[RelationUserPublic])
+def get_all_followings(
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    session: SessionDep,
+):
+    followings = session.exec(
+        select(User)
+        .join(Relation, Relation.following_id == User.id)
+        .options(selectinload(User.profile))
+        .where(
+            Relation.follower_id == current_user.id,
+        )
+    ).all()
+
+    return followings

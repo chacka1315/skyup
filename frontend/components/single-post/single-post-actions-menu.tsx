@@ -49,7 +49,7 @@ export default function PostActionsMenu({
   let followBtn: React.ReactNode;
 
   if (currentUser?.id !== post.author.id) {
-    followBtn = !post.author.is_my_friend ? (
+    followBtn = !post.author.is_followed ? (
       <DropdownMenuItem onClick={handleFollow}>
         <UserPlusIcon /> Follow @{post.author.username}
       </DropdownMenuItem>

@@ -125,7 +125,7 @@ class ProfileCreate(ProfileBase):
 
 # =================POST SCHEMAS=======================
 class PostBase(SQLModel):
-    content: str = Field(max_length=300)
+    content: str = Field(max_length=500)
 
 
 class PostUpdate(PostBase):
@@ -133,26 +133,21 @@ class PostUpdate(PostBase):
 
 
 # =================RELATION SCHEMAS=======================
-RelationStatus = Literal["follow", "follow_back"]
-
-
 class RelationBase(SQLModel):
-    receiver_id: UUID = Field(
+    follower_id: UUID = Field(
         foreign_key="users.id", nullable=False, ondelete="CASCADE"
     )
-    sender_id: UUID = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")
-    status: RelationStatus = Field(
-        default="follow",
-        sa_column=Column(String, nullable=False),
+    following_id: UUID = Field(
+        foreign_key="users.id", nullable=False, ondelete="CASCADE"
     )
 
 
 class RelationCreate(SQLModel):
-    receiver_id: UUID
+    following_id: UUID
 
 
-class RelationUpdate(SQLModel):
-    status: Literal["follow_back", "follow"]
+class RelationDelete(RelationCreate):
+    pass
 
 
 # =================REPLY SCHEMAS=======================

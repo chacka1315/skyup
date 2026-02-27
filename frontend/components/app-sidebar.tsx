@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { currentUserOptions } from '@/lib/query-options';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Navbar from './navbar';
 import {
   Sidebar,
@@ -28,6 +28,8 @@ import { Skeleton } from './ui/skeleton';
 import useAppStore from '@/lib/store/store';
 import { Button } from './ui/button';
 import UserAvatar from './user-avatar';
+import { clientAxios } from '@/lib/axios/axios-client';
+import { useRouter } from 'next/navigation';
 
 export default function AppSidebar() {
   const [dropdownIsOpen, setDropdownIsOpen] = useState(false);
@@ -98,6 +100,16 @@ function AccountDropdown({
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const handleLogout = async () => {
+    await clientAxios.post('/auth/logout/');
+    localStorage.removeItem('access_token');
+    queryClient.clear();
+    router.push('/sign-in');
+  };
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
@@ -116,7 +128,7 @@ function AccountDropdown({
       <DropdownMenuContent align="center" className="w-45">
         <DropdownMenuLabel className="mb-6">
           <p className="text-gray-500">My account</p>
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-2 gap-1">
             <Avatar>
               <AvatarImage src={currentUser.profile?.avatar_url ?? undefined} />
               <AvatarFallback className="bg-primary font-bold text-primary-foreground">
@@ -136,7 +148,7 @@ function AccountDropdown({
           </DropdownMenuItem>
         </Link>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem variant="destructive" onClick={handleLogout}>
           <LogOutIcon />
           Log out
         </DropdownMenuItem>

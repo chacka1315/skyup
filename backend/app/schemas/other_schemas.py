@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import UUID
 from .public_shemas import PostAuthor
 
@@ -37,3 +37,8 @@ class PostMetrics(BaseModel):
     is_liked_by_me: bool
     is_bookmarked_by_me: bool
     author: PostAuthor
+
+
+class FilterParams(BaseModel):
+    limit: int = Field(100, gt=0, le=100)
+    page: int = Field(1, ge=1)

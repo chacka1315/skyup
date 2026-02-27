@@ -1,5 +1,9 @@
-import React from 'react';
+import UsersTabs from '@/components/users/users-tabs';
 
 export default function Page() {
-  return <div>Users</div>;
+  return (
+    <div>
+      <UsersTabs />
+    </div>
+  );
 }

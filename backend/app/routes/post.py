@@ -140,39 +140,25 @@ async def delete_post(
 
 # ----------GET FEED POSTS---------------
 @post_router.get("/", response_model=list[PostPublicWithAuthor])
-# TODO: Implement filtering (limit, offset, query)
 def get_feed_posts(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
 ):
 
     # First we select some users followed by the current user
-    user_relations = session.exec(
-        select(Relation)
+    users_followed = session.exec(
+        select(User)
+        .join(Relation, Relation.following_id == User.id)
         .where(
-            or_(
-                and_(
-                    Relation.sender_id == current_user.id, Relation.status == "accepted"
-                ),
-                and_(
-                    Relation.receiver_id == current_user.id,
-                    Relation.status == "accepted",
-                ),
-            )
+            Relation.follower_id == current_user.id,
         )
         .order_by(func.random())
         .limit(100)
     ).all()
 
-    def get_friend_id(relation: Relation) -> UUID:
-        return (
-            relation.sender_id
-            if current_user.id == relation.receiver_id
-            else relation.receiver_id
-        )
-
-    user_friend_ids = list(map(get_friend_id, user_relations))
-    user_friend_ids.append(current_user.id)
+    users_followed_ids = map(lambda user: user.id, users_followed)
+    users_followed_ids = list(users_followed_ids)
+    users_followed_ids.append(current_user.id)
 
     is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
     is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
@@ -187,7 +173,7 @@ def get_feed_posts(
             is_bookmarked_by_me_subq,
         )
         .options(selectinload(Post.author).selectinload(User.profile))
-        .where(col(Post.author_id).in_(user_friend_ids))
+        .where(col(Post.author_id).in_(users_followed_ids))
         .order_by(desc(Post.created_at))
     ).all()
 
@@ -332,16 +318,10 @@ def get_single_post(
 
     post: Post = post_res[0]
 
-    existing_relation = session.exec(
+    existing_following = session.exec(
         select(Relation).where(
-            or_(
-                Relation.sender_id == post.author_id,
-                Relation.sender_id == current_user.id,
-            ),
-            or_(
-                Relation.receiver_id == post.author_id,
-                Relation.receiver_id == current_user.id,
-            ),
+            Relation.following_id == post.author_id,
+            Relation.follower_id == current_user.id,
         )
     ).one_or_none()
 
@@ -351,7 +331,7 @@ def get_single_post(
     author = SinglePostAuthor(
         **post_res[0].author.model_dump(),
         profile=author_profile,
-        is_my_friend=True if existing_relation else False,
+        is_followed=True if existing_following else False,
     )
 
     post_public = SinglePostPublicWithAuthor(

@@ -14,3 +14,6 @@ migrate-up:
 
 migrate-down:
 	uv run alembic downgrade -1
+
+seed:
+	uv run python -m app.scripts.seed

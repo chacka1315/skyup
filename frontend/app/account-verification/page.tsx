@@ -18,11 +18,12 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { useRouter } from 'next/navigation';
 
 export default function AccountVerification() {
   const [isSubmiting, setIsSubmiting] = useState(false);
   const [code, setCode] = useState<string>('');
-
+  const router = useRouter();
   return (
     <div className=" relative h-screen flex items-center justify-center">
       <div className="flex items-center gap-1 absolute top-4 left-10">

@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.18.3",
     "cloudinary>=1.44.1",
+    "faker>=40.5.1",
     "fastapi-mail>=1.6.1",
     "fastapi[standard]>=0.128.1",
     "psycopg>=3.3.2",

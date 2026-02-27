@@ -84,6 +84,7 @@ export default function SignIn() {
       setIsSubmiting(false);
     }
   };
+
   return (
     <div className="relative flex justify-center items-center h-screen">
       <div className="flex items-center gap-1 absolute top-4 left-10">

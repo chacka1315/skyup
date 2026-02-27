@@ -5,7 +5,6 @@ from .models_schemas import (
     UserBase,
     PostBase,
     RelationBase,
-    RelationStatus,
     ProfileBase,
     ReplyBase,
 )
@@ -46,7 +45,7 @@ class PostAuthor(UserPublic):
 
 
 class SinglePostAuthor(PostAuthor):
-    is_my_friend: bool
+    is_followed: bool
 
 
 class PostPublic(PostBase):
@@ -83,9 +82,20 @@ class PostPublicWithReplies(BaseModel):
     replies: list[ReplyPublic]
 
 
+# ==============RELATIONS====================
 class RelationPublic(RelationBase):
     id: UUID
-    sender_id: UUID
-    receiver_id: UUID
-    status: RelationStatus
+    follower_id: UUID
+    following_id: UUID
     created_at: datetime
+
+
+class RelationProfile(BaseModel):
+    name: str
+    avatar_url: HttpUrl | None
+    bio: str | None
+
+
+class RelationUserPublic(UserPublic):
+    is_followed_by_me: bool | None = None
+    profile: RelationProfile
