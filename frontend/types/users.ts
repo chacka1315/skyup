@@ -27,6 +27,8 @@ export interface UserI {
   id: string;
   is_followed_by_me?: boolean;
   is_following_me?: boolean;
+  followers_count?: number;
+  followings_count?: number;
   created_at: string;
   profile: {
     name: string;

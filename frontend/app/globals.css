@@ -47,6 +47,8 @@
   --radius-4xl: calc(var(--radius) + 16px);
   /*custom animations*/
   --animate-show-post-field: show-post-field 0.2s ease-out;
+  --animate-post-action: post-action 0.2s ease;
+
   @keyframes show-post-field {
     from {
       transform: scaleY(0);
@@ -54,6 +56,15 @@
 
     to {
       transform: scaleY(1);
+    }
+  }
+
+  @keyframes post-action {
+    from {
+      transform: scale(1.5);
+    }
+    to {
+      transform: scale(1);
     }
   }
 }
@@ -69,6 +80,7 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #1da1f2;
   --bg-primary: #1da1f2;
+  --bg-sidebar: #fff;
   --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);

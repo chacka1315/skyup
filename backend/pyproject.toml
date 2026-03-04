@@ -10,7 +10,7 @@ dependencies = [
     "faker>=40.5.1",
     "fastapi-mail>=1.6.1",
     "fastapi[standard]>=0.128.1",
-    "psycopg>=3.3.2",
+    "psycopg[binary]",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.12.0",
     "pyjwt>=2.11.0",

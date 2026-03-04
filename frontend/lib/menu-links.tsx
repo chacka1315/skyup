@@ -2,7 +2,7 @@ import {
   RiHome7Fill as HomeIcon,
   RiUserCommunityLine as UsersIcon,
 } from 'react-icons/ri';
-import { BookmarkIcon, BellIcon, UserIcon } from 'lucide-react';
+import { BookmarkIcon, BellIcon } from 'lucide-react';
 
 export const links = [
   {
@@ -17,5 +17,4 @@ export const links = [
     href: '/users',
     icon: <UsersIcon className="" />,
   },
-  { name: 'Profile', href: '/profile/me', icon: <UserIcon /> },
 ];

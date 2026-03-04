@@ -11,7 +11,7 @@ if (!API_URL) {
 
 export const clientAxios = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 60000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -56,13 +56,10 @@ clientAxios.interceptors.response.use(
           localStorage.setItem('access_token', newAccessToken);
         }
         clientAxios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
-
-        console.log('✅Success refresh token');
         return await clientAxios(originalRequest);
       } catch {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('access_token');
-          console.warn('🔅Failed to refreh token');
           window.location.href = '/sign-in';
         }
       }

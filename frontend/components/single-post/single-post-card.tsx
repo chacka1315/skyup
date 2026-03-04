@@ -28,10 +28,13 @@ export default function PostCard({ post }: { post: PostI }) {
       <Separator />
       <div className="flex flex-col gap-1 pt-3">
         <section className="flex justify-between items-center px-3">
-          <div className="flex gap-2">
-            <UserAvatar user={post.author} />
-            <PostAuthor author={post.author} />
-          </div>
+          <Link href={`/profiles/${post.author.username}`}>
+            <div className="flex gap-2">
+              <UserAvatar user={post.author} />
+              <PostAuthor author={post.author} />
+            </div>
+          </Link>
+
           <div className="flex items-center">
             {!(
               post.author.is_followed || post.author.id === currentUser?.id

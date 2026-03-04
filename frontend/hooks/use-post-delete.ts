@@ -33,6 +33,7 @@ export function usePostDelete(postId: string) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', 'bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['user-posts'] });
       toast.success('Post has been deleted.', {
         toasterId: 'post-stuff',
       });

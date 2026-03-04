@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import {
   BookmarkIcon,
@@ -9,21 +10,42 @@ import {
 } from 'lucide-react';
 import { PostI } from '@/types';
 import clsx from 'clsx';
-import { usePostBookmark } from '@/hooks/use-post-bookmark';
-import { usePostLike } from '@/hooks/use-post-like ';
 import { Separator } from '../ui/separator';
 import { formatPostTime, formatSinglePostDate } from '@/lib/utils';
+import { usePostBookmark } from '@/hooks/use-post-bookmark';
+import { usePostLike } from '@/hooks/use-post-like ';
+import useAppStore from '@/lib/store/store';
 
 export default function PostFooter({ post }: { post: PostI }) {
   const bookmark = usePostBookmark(post.id);
   const like = usePostLike(post.id);
+  const [likeAnimating, setLikeAnimating] = useState(false);
+  const [bookmarkAnimating, setBookmarkAnimating] = useState(false);
+  const setPostToReply = useAppStore((state) => state.setPostToReply);
+  const setCreateReplyAreaIsOpen = useAppStore(
+    (state) => state.setCreateReplyAreaIsOpen,
+  );
+  const replyAreaIsOpen = useAppStore((state) => state.createReplyAreaIsOpen);
 
   const handleLike = () => {
+    if (!post.is_liked_by_me) {
+      setLikeAnimating(false);
+      requestAnimationFrame(() => setLikeAnimating(true));
+    }
     like.toggle(post.is_liked_by_me ? 'remove' : 'add');
   };
 
   const handleBookmark = () => {
+    if (!post.is_bookmarked_by_me) {
+      setBookmarkAnimating(false);
+      requestAnimationFrame(() => setBookmarkAnimating(true));
+    }
     bookmark.toggle(post.is_bookmarked_by_me ? 'remove' : 'add');
+  };
+
+  const handleReply = () => {
+    setPostToReply(post);
+    setCreateReplyAreaIsOpen(!replyAreaIsOpen);
   };
 
   return (
@@ -54,6 +76,7 @@ export default function PostFooter({ post }: { post: PostI }) {
         <Button
           className="text-gray-500 font-normal gap-0.5 has-[>svg]:px-1 has-[>svg]:py-1 h-fit"
           variant="ghost"
+          onClick={handleReply}
         >
           <MessageCircleIcon />
         </Button>
@@ -64,11 +87,14 @@ export default function PostFooter({ post }: { post: PostI }) {
             { 'text-pink-500': post.is_liked_by_me },
           )}
           onClick={handleLike}
+          disabled={like.isPending}
         >
           <HeartIcon
             className={clsx({
+              'animate-post-action': likeAnimating && post.is_liked_by_me,
               'stroke-pink-500 fill-pink-500': post.is_liked_by_me,
             })}
+            onAnimationEnd={() => setLikeAnimating(false)}
           />
         </Button>
         <Button
@@ -78,11 +104,15 @@ export default function PostFooter({ post }: { post: PostI }) {
             { 'text-primary': post.is_bookmarked_by_me },
           )}
           onClick={handleBookmark}
+          disabled={bookmark.isPending}
         >
           <BookmarkIcon
             className={clsx({
+              'animate-post-action':
+                bookmarkAnimating && post.is_bookmarked_by_me,
               'stroke-primary fill-primary': post.is_bookmarked_by_me,
             })}
+            onAnimationEnd={() => setBookmarkAnimating(false)}
           />
         </Button>
       </div>

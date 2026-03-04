@@ -12,12 +12,19 @@ fake = Faker()
 # 40k posts;
 # 250k likes;
 # 15k follows;
-users_count = 800
-posts_count = 40_000
-replies_count = 20_000
-likes_count = 400_000
-bookmarks_count = 100_000
-follows_count = 20_000
+# users_count = 800
+# posts_count = 40_000
+# replies_count = 20_000
+# likes_count = 400_000
+# bookmarks_count = 100_000
+# follows_count = 20_000
+
+users_count = 200
+posts_count = 4000
+replies_count = 2000
+likes_count = 40000
+bookmarks_count = 10000
+follows_count = 2000
 
 
 def seed_users(session: Session):
@@ -42,8 +49,8 @@ def seed_users(session: Session):
             id=generate_uuid7(),
             user_id=user.id,
             bio=fake.catch_phrase(),
-            avatar_url="https://picsum.photos/800/800",
-            banner_url="https://picsum.photos/1000/500",
+            avatar_url=fake.image_url(800, 800),
+            banner_url=fake.image_url(1000, 500),
         )
 
         try:
@@ -64,6 +71,8 @@ def seed_users(session: Session):
 
 def seed_posts(session: Session, users: list[User]):
     posts: list[Post] = []
+    image_id = 0
+
     print("\n⌛ Generating posts...")
 
     if not users:
@@ -85,7 +94,11 @@ def seed_posts(session: Session, users: list[User]):
         if have_image:
             post.media_type = "image"
             width, height = random.choice(images_sizes)
-            post.media_url = f"https://picsum.photos/{width}/{height}"
+            post.media_url = f"https://picsum.photos/id/{image_id}/{width}/{height}"
+            image_id += 1
+
+            if image_id > 1080:
+                image_id = 0
         try:
             session.add(post)
             session.flush()

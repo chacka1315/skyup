@@ -7,6 +7,7 @@ import { clientAxios } from '@/lib/axios/axios-client';
 import { SinglePostSkeleton } from '../skeletons/posts';
 import { notFound } from 'next/navigation';
 import PostCard from './single-post-card';
+import { isAxiosError } from 'axios';
 
 export default function SinglePost({ postId }: { postId: string }) {
   const {
@@ -16,9 +17,7 @@ export default function SinglePost({ postId }: { postId: string }) {
   } = useQuery({
     queryFn: async () => {
       const res = await clientAxios.get<PostI>(`/posts/${postId}`);
-      if (res.status === 404) {
-        notFound();
-      }
+
       return res.data;
     },
     queryKey: ['posts', 'detail', postId],
@@ -30,7 +29,11 @@ export default function SinglePost({ postId }: { postId: string }) {
   }
 
   if (error || !post) {
-    throw error;
+    if (isAxiosError(error) && error.response?.status === 404) {
+      notFound();
+    } else {
+      throw error;
+    }
   }
 
   return <PostCard post={post} />;

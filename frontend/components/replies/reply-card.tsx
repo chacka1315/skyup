@@ -4,12 +4,16 @@ import { ReplyI, PostAuthorI } from '@/types';
 import { formatPostDate } from '@/lib/utils';
 import { Separator } from '../ui/separator';
 import UserAvatar from '../user-avatar';
+import Link from 'next/link';
 
 export default function ReplyCard({ reply }: { reply: ReplyI }) {
   return (
     <>
       <div className="flex items-start px-3 gap-2">
-        <UserAvatar user={reply.author} />
+        <Link href={`/profiles/${reply.author.username}`}>
+          <UserAvatar user={reply.author} />
+        </Link>
+
         <div className="w-full">
           <ReplyAuthor author={reply.author} createdAt={reply.created_at} />
           <section>

@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogTrigger } from '../ui/alert-dialog';
 import UnfollowDialog from './unfollow-dialog';
 import { useQuery } from '@tanstack/react-query';
 import { currentUserOptions } from '@/lib/query-options';
+import Link from 'next/link';
 
 type UseCardProps = {
   user: UserI;
@@ -33,13 +34,19 @@ export default function UserCard({ user, kind, followFns }: UseCardProps) {
           </p>
         )}
         <div className="flex items-start gap-2">
-          <UserAvatar user={user} />
+          <Link href={`/profiles/${user.username}`}>
+            <UserAvatar user={user} />
+          </Link>
+
           <div className=" text-[13px] md:text-[15px] flex flex-col leading-none w-full">
             <div className="flex justify-between w-full">
-              <div>
-                <p className="font-semibold mb-1">{user.profile.name}</p>
-                <p className="text-gray-500 text-[13px]">@{user.username}</p>
-              </div>
+              <Link href={`/profiles/${user.username}`}>
+                <div>
+                  <p className="font-semibold mb-1">{user.profile.name}</p>
+                  <p className="text-gray-500 text-[13px]">@{user.username}</p>
+                </div>
+              </Link>
+
               {kind === 'follower' && user.is_followed_by_me === false && (
                 <Button
                   className="rounded-full px-2 py-2 h-fit text-[13px]"
@@ -75,8 +82,7 @@ export default function UserCard({ user, kind, followFns }: UseCardProps) {
                 </AlertDialog>
               )}
             </div>
-            {user.profile.bio &&  <p className="mt-3">{user.profile.bio}</p>}
-           
+            {user.profile.bio && <p className="mt-3">{user.profile.bio}</p>}
           </div>
         </div>
       </div>

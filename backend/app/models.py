@@ -35,7 +35,13 @@ class User(UserBase, table=True):
     )
 
     posts: list["Post"] = Relationship(back_populates="author")
-    profile: "Profile" = Relationship()
+    profile: "Profile" = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
+    )
 
 
 class Profile(ProfileBase, table=True):
@@ -48,7 +54,7 @@ class Profile(ProfileBase, table=True):
     avatar_id: str | None = None
     banner_id: str | None = None
 
-    # user: User = Relationship(back_populates="profile")
+    user: User = Relationship(back_populates="profile")
 
 
 class Post(PostBase, table=True):
@@ -65,7 +71,13 @@ class Post(PostBase, table=True):
     )
 
     author: User = Relationship(back_populates="posts")
-    replies: list["Reply"] = Relationship()
+    replies: list["Reply"] = Relationship(
+        back_populates="post",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
+    )
     # likes: list["Like"] = Relationship(back_populates="post")
 
 
@@ -79,6 +91,7 @@ class Reply(ReplyBase, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )
+    post: Post = Relationship(back_populates="replies")
     author: User = Relationship()
 
 

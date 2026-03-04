@@ -87,7 +87,7 @@ export default function SignIn() {
 
   return (
     <div className="relative flex justify-center items-center h-screen">
-      <div className="flex items-center gap-1 absolute top-4 left-10">
+      <div className="hidden md:flex items-center gap-1 absolute top-4 left-10">
         <Image src="/logo.svg" height={30} width={30} alt="logo" />
         <p className="text-primary text-[22px] font-medium">SkyUp</p>
       </div>

@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
 } from './ui/sidebar';
 import Image from 'next/image';
-import { LogOutIcon, SettingsIcon } from 'lucide-react';
+import { LogOutIcon, SettingsIcon, UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AvatarFallback, AvatarImage, Avatar } from './ui/avatar';
 import { useState } from 'react';
@@ -35,9 +35,10 @@ export default function AppSidebar() {
   const [dropdownIsOpen, setDropdownIsOpen] = useState(false);
   const { data: currentUser, error, isLoading } = useQuery(currentUserOptions);
   const setCreatePostAreaIsOpen = useAppStore(
-    (state) => state.setCreateAreaIsOpen,
+    (state) => state.setCreatePostAreaIsOpen,
   );
   const postAreaIsOpen = useAppStore((state) => state.createPostAreaIsOpen);
+  const setSelectedUsersTab = useAppStore((state) => state.setSelectedUsersTab);
 
   if (error) {
     throw error;
@@ -45,13 +46,13 @@ export default function AppSidebar() {
 
   return (
     <Sidebar>
-      <div className="relative flex justify-center h-full w-full">
+      <div className="relative flex justify-center h-full w-full bg-white">
         <div className="h-full w-ful">
           <SidebarHeader>
             <Image src="/logo.svg" width={30} height={30} alt="logo" />
           </SidebarHeader>
 
-          <SidebarMenu className="space-y-2">
+          <SidebarMenu className="space-y-3 translate-x-2">
             {isLoading && <Laoding />}
           </SidebarMenu>
           {currentUser && (
@@ -71,6 +72,26 @@ export default function AppSidebar() {
                   isOpen={dropdownIsOpen}
                   setIsOpen={setDropdownIsOpen}
                 />
+                <div className=" self-center flex items-center gap-3 text-gray-500 text-[13px]">
+                  <Link
+                    href="/users"
+                    onClick={() => setSelectedUsersTab('followers')}
+                  >
+                    <span className="text-black font-bold">
+                      {currentUser.followers_count}
+                    </span>{' '}
+                    Followers
+                  </Link>
+                  <Link
+                    href="/users"
+                    onClick={() => setSelectedUsersTab('followings')}
+                  >
+                    <span className="text-black font-bold">
+                      {currentUser.followings_count}
+                    </span>{' '}
+                    Followings
+                  </Link>
+                </div>
               </SidebarFooter>
             </>
           )}
@@ -83,11 +104,22 @@ export default function AppSidebar() {
 function Laoding() {
   return (
     <>
-      {Array.from({ length: 6 }).map((_, index) => (
-        <SidebarMenuItem key={index}>
-          <Skeleton className="h-5 w-30 rounded-2xl" />
-        </SidebarMenuItem>
-      ))}
+      <SidebarMenuItem className="flex items-center gap-1">
+        <Skeleton className="h-4 w-4  rounded-full shrink-0" />
+        <Skeleton className="h-4 w-20  rounded-full" />
+      </SidebarMenuItem>
+      <SidebarMenuItem className="flex items-center gap-1">
+        <Skeleton className="h-4 w-4  rounded-full shrink-0" />
+        <Skeleton className="h-4 w-35  rounded-full" />
+      </SidebarMenuItem>
+      <SidebarMenuItem className="flex items-center gap-1">
+        <Skeleton className="h-4 w-4 rounded-full shrink-0" />
+        <Skeleton className="h-4 w-30  rounded-full" />
+      </SidebarMenuItem>
+      <SidebarMenuItem className="flex items-center gap-1">
+        <Skeleton className="h-4 w-4  rounded-full shrink-0" />
+        <Skeleton className="h-4 w-15  rounded-full" />
+      </SidebarMenuItem>
     </>
   );
 }
@@ -126,7 +158,7 @@ function AccountDropdown({
         </SidebarMenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-45">
-        <DropdownMenuLabel className="mb-6">
+        <DropdownMenuLabel className="mb-4">
           <p className="text-gray-500">My account</p>
           <div className="flex items-center mt-2 gap-1">
             <Avatar>
@@ -141,6 +173,12 @@ function AccountDropdown({
             </div>
           </div>
         </DropdownMenuLabel>
+        <Link href={`/profiles/${currentUser.username}`}>
+          <DropdownMenuItem>
+            <UserIcon />
+            Profile
+          </DropdownMenuItem>
+        </Link>
         <Link href="/settings">
           <DropdownMenuItem>
             <SettingsIcon />

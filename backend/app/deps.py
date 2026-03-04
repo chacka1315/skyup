@@ -1,3 +1,5 @@
+from pydantic import BaseModel
+
 from .core.db import engine
 from typing import Annotated
 from sqlmodel import Session, select, or_
@@ -25,7 +27,11 @@ SessionDep = Annotated[Session, Depends(get_sesssion)]
 
 
 # Verify credentials not in use
-async def validate_user_creation(user_in: UserCreate, session: SessionDep):
+
+
+async def validate_user_creation(
+    user_in: UserCreate, session: SessionDep
+) -> UserCreate:
 
     # check if user already exist with same username
     existing_user = session.exec(
@@ -36,45 +42,13 @@ async def validate_user_creation(user_in: UserCreate, session: SessionDep):
 
     if existing_user is None:
         return user_in
+
     if existing_user.email == user_in.email:
         if not existing_user.is_verified:
-            verification = session.exec(
-                select(EmailVerification).where(
-                    EmailVerification.user_id == existing_user.id
-                )
-            ).one()
-
-            now = datetime.now(timezone.utc)
-            cooldown = timedelta(minutes=2)
-
-            if verification.created_at + cooldown > now:
-                raise HTTPException(
-                    status_code=429,
-                    detail="Please wait 2 minute before doing another request.",
-                )
-
-            verification_code = generate_code()
-            expires_mins = settings.EMAIL_VERIFICATION_MINUTES
-            expires_at = now + timedelta(minutes=expires_mins)
-
-            verification.expires_at = expires_at
-            verification.code = verification_code
-            verification.created_at = now
-
-            save_instance(verification, session)
+            session.delete(existing_user)
             session.commit()
+            return user_in
 
-            mail_res = await send_email_verification(
-                user_email=user_in.email, user_name=user_in.name, code=verification_code
-            )
-
-            raise HTTPException(
-                status_code=202,
-                detail={
-                    "message": "We have sent a verification code.",
-                    "user_id": str(existing_user.id),
-                },
-            )
         else:
             raise HTTPException(
                 status_code=400, detail="A user already exists with same email address."

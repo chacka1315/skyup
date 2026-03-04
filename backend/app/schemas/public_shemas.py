@@ -18,10 +18,12 @@ class UserPublic(UserBase):
 
 class UserPublicWithProfile(UserPublic):
     profile: "ProfilePublic"
+    followers_count: int
+    followings_count: int
 
 
-class UserPublicWithPosts(UserPublic):
-    posts: list["PostPublic"] = []
+class UserPublicWithPosts(UserPublicWithProfile):
+    posts: list["PostPublic"]
 
 
 class ProfilePublic(ProfileBase):

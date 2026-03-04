@@ -24,6 +24,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useQuery } from '@tanstack/react-query';
+import { currentUserOptions } from '@/lib/query-options';
+import UserAvatar from '../user-avatar';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -259,13 +262,12 @@ function SidebarTrigger({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar();
-
+  const { data: currentUser } = useQuery(currentUserOptions);
   return (
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
-      size="icon"
       className={cn('size-7', className)}
       onClick={(event) => {
         onClick?.(event);
@@ -273,7 +275,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      <UserAvatar user={currentUser} size={7} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Form, UploadFile, File
 from app.deps import get_current_verified_user, SessionDep
-from app.models import User, Post, Relation, Bookmark, Like
+from app.models import User, Post, Relation, Bookmark, Like, Reply
 from sqlmodel import select, or_, func, and_, col, desc
 from sqlalchemy.orm import selectinload
 from ..helpers.subqueries import (
@@ -12,6 +12,7 @@ from ..helpers.subqueries import (
 )
 from typing import Annotated
 from uuid import UUID
+from datetime import datetime, timedelta, timezone
 from ..schemas import (
     PostPublicWithAuthor,
     SinglePostPublicWithAuthor,
@@ -175,6 +176,84 @@ def get_feed_posts(
         .options(selectinload(Post.author).selectinload(User.profile))
         .where(col(Post.author_id).in_(users_followed_ids))
         .order_by(desc(Post.created_at))
+    ).all()
+
+    posts_public = []
+
+    for (
+        post,
+        likes_count,
+        replies_count,
+        bookmarks_count,
+        is_liked_by_me,
+        is_bookmarked_by_me,
+    ) in posts_res:
+        author_profile = PostAuthorProfile(**post.author.profile.model_dump())
+        author = PostAuthor(**post.author.model_dump(), profile=author_profile)
+
+        post_public = PostPublicWithAuthor(
+            **post.model_dump(),
+            author=author,
+            likes_count=likes_count,
+            is_liked_by_me=bool(is_liked_by_me),
+            bookmarks_count=bookmarks_count,
+            is_bookmarked_by_me=bool(is_bookmarked_by_me),
+            replies_count=replies_count,
+        )
+
+        posts_public.append(post_public)
+
+    return posts_public
+
+
+# ----------GET TRENDING POSTS OF THE WEEK---------------
+@post_router.get("/trends/", response_model=list[PostPublicWithAuthor])
+def get_trending_posts_of_the_week(
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+):
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+    likes_count_sq = (
+        sa_select(
+            Like.post_id.label("post_id"),
+            func.count(Like.id).label("likes_count"),
+        )
+        .group_by(Like.post_id)
+        .subquery()
+    )
+
+    replies_count_sq = (
+        sa_select(
+            Reply.post_id.label("post_id"),
+            func.count(Reply.id).label("replies_count"),
+        )
+        .group_by(Reply.post_id)
+        .subquery()
+    )
+
+    is_liked_by_me_subq = get_is_liked_by_me_subq(current_user)
+    is_bookmarked_by_me_subq = get_is_bookmarked_by_me_subq(current_user)
+
+    posts_res = session.exec(
+        select(
+            Post,
+            func.coalesce(likes_count_sq.c.likes_count, 0).label("likes_count"),
+            func.coalesce(replies_count_sq.c.replies_count, 0).label("replies_count"),
+            bookmarks_count_subq,
+            is_liked_by_me_subq,
+            is_bookmarked_by_me_subq,
+        )
+        .options(selectinload(Post.author).selectinload(User.profile))
+        .outerjoin(likes_count_sq, likes_count_sq.c.post_id == Post.id)
+        .outerjoin(replies_count_sq, replies_count_sq.c.post_id == Post.id)
+        .where(Post.created_at >= week_ago)
+        .order_by(
+            desc(func.coalesce(replies_count_sq.c.replies_count, 0)),
+            desc(func.coalesce(likes_count_sq.c.likes_count, 0)),
+            desc(Post.created_at),
+        )
+        .limit(4)
     ).all()
 
     posts_public = []

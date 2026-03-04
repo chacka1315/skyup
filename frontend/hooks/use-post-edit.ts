@@ -59,6 +59,7 @@ export function usePostEdit(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', 'bookmarks'] });
       queryClient.invalidateQueries({ queryKey: ['posts', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['user-posts'] });
 
       toast.success('Post has been updated successfully.', {
         toasterId: 'post-stuff',

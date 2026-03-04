@@ -80,36 +80,3 @@ async def update_profile(
     session.refresh(user_profile)
 
     return user_profile
-
-
-# ----------GET ALL THE PROFILES IN THE DB---------------
-@profile_router.get("/", response_model=list[ProfilePublic])
-# TODO: Add filters : i.e. limit, query, page, offset
-def get_all_profiles(session: SessionDep):
-    profiles = session.exec(select(Profile)).all()
-
-    return profiles
-
-
-# ------------GET THE CONNECTED PROFILE---------------
-@profile_router.get("/me/", response_model=ProfilePublic)
-def get_me(
-    current_user: Annotated[Profile, Depends(get_current_verified_user)],
-    session: SessionDep,
-):
-    profile = session.exec(
-        select(Profile).where(Profile.user_id == current_user.id)
-    ).one()
-
-    return profile
-
-
-# ------------GET ANY PROFILE---------------
-@profile_router.get("/{profile_id}/", response_model=ProfilePublic)
-def get_profile(session: SessionDep, profile_id: UUID):
-    profile = session.get(profile_id)
-
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
-
-    return profile

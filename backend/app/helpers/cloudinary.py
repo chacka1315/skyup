@@ -52,7 +52,7 @@ def validate_media(
             status_code=400,
             detail=f"File too large. Maximum size for videos is { MAX_VIDEO_SIZE// (1024*1024)} MB",
         )
-    elif file_size > MAX_IMAGE_SIZE:
+    elif media_type == "image" and file_size > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=400,
             detail=f"File too large. Maximum size for images is { MAX_IMAGE_SIZE// (1024*1024)} MB",

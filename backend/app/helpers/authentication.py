@@ -1,4 +1,6 @@
 import secrets
+
+from fastapi import HTTPException
 from ..core.config import settings
 from app.models import User
 from sqlmodel import select, Session
@@ -16,7 +18,9 @@ password_hasher = PasswordHash.recommended()
 
 
 def authenticate_user(email: str, password: str, session: Session) -> User | None:
-    user = session.exec(select(User).where(User.email == email)).one_or_none()
+    user = session.exec(
+        select(User).where(User.email == email, User.is_verified == True)
+    ).one_or_none()
 
     if not user:
         return None

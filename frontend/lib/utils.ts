@@ -1,11 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import {
-  formatDistanceToNowStrict,
-  isToday,
-  isThisYear,
-  format,
-} from 'date-fns';
+import { formatDistanceToNowStrict, isThisYear, format } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -36,10 +31,12 @@ export function isAuthPage(pathname: string): boolean {
 
 export function formatPostDate(createdAt: string): string {
   const date = new Date(createdAt);
+  const diffMs = Date.now() - date.getTime();
+  const twoDaysMs = 24 * 60 * 60 * 1000;
 
-  //TODO : Not verify the fist condition with isToday() but verify if the post released at most 24hours ago.
-  if (isToday(date)) {
-    return formatDistanceToNowStrict(date);
+  if (diffMs < twoDaysMs) {
+    const fomated = formatDistanceToNowStrict(date).split(' ');
+    return `${fomated[0]} ${fomated[1].charAt(0)}`;
   } else if (isThisYear(date)) {
     const formatedDate = format(date, 'PPpp').split(',')[0];
     return `${formatedDate}.`;

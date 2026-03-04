@@ -1,13 +1,14 @@
-import React from 'react';
-import { getSession } from '@/lib/auth/auth';
-import { redirect } from 'next/navigation';
-import { UserI } from '@/types/users';
+import Profile from '@/components/profile/Profile';
 
-export default async function Profile(props: {
+export default async function Page(props: {
   params: Promise<{ username: string }>;
 }) {
   const params = await props.params;
   const username = params.username;
 
-  return <div>@{username} profile</div>;
+  return (
+    <div>
+      <Profile username={username} />
+    </div>
+  );
 }

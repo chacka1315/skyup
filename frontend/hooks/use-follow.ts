@@ -42,6 +42,9 @@ export const useFollowAuthor = () => {
 
     onSuccess: (data, post) => {
       queryClient.invalidateQueries({ queryKey: ['posts', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      queryClient.invalidateQueries({ queryKey: ['users', 'profile'] });
+
       toast.success(`Your are following @${post.author.username}`, {
         toasterId: 'post-stuff',
       });
@@ -118,6 +121,7 @@ export function useFollowUser() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error, variables, context) => {

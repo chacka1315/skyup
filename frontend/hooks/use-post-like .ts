@@ -61,11 +61,16 @@ export const usePostLike = (postId: string) => {
         });
       };
 
-      queryClient.setQueryData<PostI[]>(['posts', 'feed'], updateLikeState);
-      queryClient.setQueryData<PostI[]>(
-        ['posts', 'bookmarks'],
-        updateLikeState,
-      );
+      if (previousFeedData) {
+        queryClient.setQueryData<PostI[]>(['posts', 'feed'], updateLikeState);
+      }
+
+      if (previousBookmarksData) {
+        queryClient.setQueryData<PostI[]>(
+          ['posts', 'bookmarks'],
+          updateLikeState,
+        );
+      }
 
       if (previousSinglePost) {
         queryClient.setQueryData<PostI>(['posts', 'detail', postId], (old) => {
@@ -82,6 +87,7 @@ export const usePostLike = (postId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', 'detail'] });
       queryClient.invalidateQueries({ queryKey: ['posts', 'bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['user-posts'] });
     },
 
     onError: (error, mode, context) => {
@@ -92,11 +98,16 @@ export const usePostLike = (postId: string) => {
           toasterId: 'post-stuff',
         });
       }
-      queryClient.setQueryData(['posts', 'feed'], context?.previousFeedData);
-      queryClient.setQueryData(
-        ['posts', 'bookmarks'],
-        context?.previousBookmarksData,
-      );
+      if (context?.previousFeedData) {
+        queryClient.setQueryData(['posts', 'feed'], context?.previousFeedData);
+      }
+
+      if (context?.previousBookmarksData) {
+        queryClient.setQueryData(
+          ['posts', 'bookmarks'],
+          context?.previousBookmarksData,
+        );
+      }
 
       if (context?.previousSinglePost) {
         queryClient.setQueryData(
@@ -107,5 +118,5 @@ export const usePostLike = (postId: string) => {
     },
   });
 
-  return { toggle: mutation.mutate };
+  return { toggle: mutation.mutate, isPending: mutation.isPending };
 };

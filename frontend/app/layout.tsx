@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased overflow-hidden`}>
         <QueryProvider>{children}</QueryProvider>
-        <Toaster id="global" />
+        <Toaster id="global" position="top-center" />
         <Toaster id="post-stuff" position="top-center" />
       </body>
     </html>

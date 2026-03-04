@@ -8,6 +8,7 @@ from fastapi import (
     BackgroundTasks,
     Request,
 )
+from fastapi.responses import JSONResponse
 from app.models import User, EmailVerification, Profile
 from ..schemas import UserCreate, UserPublic, EmailVerificationCreate, Token
 from app.deps import SessionDep, validate_user_creation, oauth2_scheme
@@ -26,7 +27,6 @@ from ..helpers.email import send_email_verification, send_email_welcome
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 import jwt
-from pprint import pprint
 
 auth_router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -38,16 +38,16 @@ password_hasher = PasswordHash.recommended()
     "/sign-up/", status_code=status.HTTP_201_CREATED, response_model=UserPublic
 )
 async def create_user(
-    user: Annotated[UserCreate, Depends(validate_user_creation)], session: SessionDep
+    user_in: Annotated[UserCreate, Depends(validate_user_creation)], session: SessionDep
 ):
     # create user
-    user_db = User.model_validate(user)
+    user_db = User.model_validate(user_in)
     hashed_password = password_hasher.hash(user_db.password)
     user_db.password = hashed_password
     save_instance(user_db, session)
 
     # create the user profile
-    user_profile = Profile(name=user.name, user_id=user_db.id)
+    user_profile = Profile(name=user_in.name, user_id=user_db.id)
     save_instance(user_profile, session)
 
     # create email verification
@@ -64,7 +64,7 @@ async def create_user(
     refresh_all(session, user_db, user_profile, verification)
 
     mail_res = await send_email_verification(
-        user_email=user_db.email, user_name=user.name, code=verification.code
+        user_email=user_db.email, user_name=user_in.name, code=verification.code
     )
     return user_db
 
@@ -159,15 +159,25 @@ def login(
 @auth_router.post("/refresh/", response_model=Token)
 def refresh_access_token(
     session: SessionDep,
-    response: Response,
     refresh_token: Annotated[str | None, Cookie()] = None,
 ):
-    refresh_exception = HTTPException(
-        status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
-    )
+    def unauthorized_with_cookie_cleanup() -> JSONResponse:
+        res = JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": "Unauthorized"},
+        )
+
+        res.delete_cookie(
+            key="refresh_token",
+            httponly=True,
+            secure=settings.PY_ENV == "prod",
+            samesite="lax" if settings.PY_ENV == "dev" else "none",
+            path="/",
+        )
+        return res
 
     if refresh_token is None:
-        raise refresh_exception
+        return unauthorized_with_cookie_cleanup()
 
     try:
         payload = jwt.decode(
@@ -177,43 +187,21 @@ def refresh_access_token(
         )
         user_id = payload.get("sub")
     except jwt.InvalidTokenError as err:
-        print("🔅REfresh decode err:", str(err))
-        raise refresh_exception
+        return unauthorized_with_cookie_cleanup()
 
     if not user_id:
-        raise refresh_exception
+        return unauthorized_with_cookie_cleanup()
 
     user_to_refresh = session.get(User, user_id)
 
     if not user_to_refresh or not user_to_refresh.is_verified:
-        raise refresh_exception
+        return unauthorized_with_cookie_cleanup()
 
     if user_to_refresh.refresh_token != refresh_token:
-        print("❌Raise here, refresh token no match")
-        raise refresh_exception
+        return unauthorized_with_cookie_cleanup()
 
     jwt_payload = {"sub": str(user_to_refresh.id)}
-
-    new_refresh_token = create_refresh_token(
-        {"sub": str(user_to_refresh.id)}, expire_at=payload["exp"]
-    )
-
-    user_to_refresh.refresh_token = new_refresh_token
-    session.commit()
-
     access_token = create_access_token(jwt_payload)
-
-    REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days in seconds
-
-    response.set_cookie(
-        key="refresh_token",
-        value=new_refresh_token,
-        max_age=REFRESH_COOKIE_MAX_AGE,
-        httponly=True,
-        secure=settings.PY_ENV == "prod",
-        samesite="lax" if settings.PY_ENV == "dev" else "none",
-        path="/",
-    )
 
     return Token(access_token=access_token, token_type="bearer")
 
@@ -235,13 +223,14 @@ def logout(
             )
             user_id = payload.get("sub")
         except jwt.InvalidTokenError:
-            return response.delete_cookie(
+            response.delete_cookie(
                 key="refresh_token",
                 httponly=True,
                 secure=settings.PY_ENV == "prod",
                 samesite="lax" if settings.PY_ENV == "dev" else "none",
                 path="/",
             )
+            return
 
         user_to_logout = session.get(User, user_id)
         if user_to_logout:
@@ -256,3 +245,4 @@ def logout(
         samesite="lax" if settings.PY_ENV == "dev" else "none",
         path="/",
     )
+    return

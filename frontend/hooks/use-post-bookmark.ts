@@ -58,14 +58,14 @@ export const usePostBookmark = (postId: string) => {
         });
       };
 
-      if (previousBookmarksData) {
+      if (previousFeedData) {
         queryClient.setQueryData<PostI[]>(
           ['posts', 'feed'],
           updateBookmarkState,
         );
       }
 
-      if (previousFeedData) {
+      if (previousBookmarksData) {
         queryClient.setQueryData<PostI[]>(
           ['posts', 'bookmarks'],
           (olds = []) => {
@@ -131,6 +131,8 @@ export const usePostBookmark = (postId: string) => {
     onSuccess: (data, mode) => {
       queryClient.invalidateQueries({ queryKey: ['posts', 'detail'] });
       queryClient.invalidateQueries({ queryKey: ['posts', 'bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['user-posts'] });
+
       if (mode == 'remove') {
         toast.success('Post deleted from your bookmarks.', {
           toasterId: 'post-stuff',
@@ -143,5 +145,5 @@ export const usePostBookmark = (postId: string) => {
     },
   });
 
-  return { toggle: mutation.mutate };
+  return { toggle: mutation.mutate, isPending: mutation.isPending };
 };

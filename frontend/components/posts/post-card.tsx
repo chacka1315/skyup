@@ -29,7 +29,10 @@ export default function PostsCard({
     <>
       <Separator />
       <div className="flex items-start px-3 gap-2" ref={postRef}>
-        <UserAvatar user={post.author} />
+        <Link href={`/profiles/${post.author.username}`}>
+          <UserAvatar user={post.author} />
+        </Link>
+
         <div className="w-full">
           <div className="flex justify-between items-start">
             <Link href={`/posts/${post.id}`}>
