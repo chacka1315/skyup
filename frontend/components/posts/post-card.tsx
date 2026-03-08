@@ -92,7 +92,7 @@ function PostMedia({ post }: { post: PostI }) {
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         alt="post image"
-        className="rounded-md "
+        className="rounded-md"
         loading="eager"
       />
     );

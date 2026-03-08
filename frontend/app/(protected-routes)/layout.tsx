@@ -4,6 +4,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import AppSidebar from '@/components/app-sidebar';
 import CreatePost from '@/components/posts/create-post';
 import CreateReply from '@/components/replies/create-reply';
+import FeedScrollRestoration from '@/components/feed-scroll-restoration';
 import Image from 'next/image';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -15,7 +16,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SidebarTrigger />
           <Image src="/logo.svg" height={30} width={30} alt="logo" />
         </div>
-        <ScrollArea className="h-screen w-full relative">
+        <ScrollArea id="protected-scroll-area" className="h-screen w-full relative">
+          <FeedScrollRestoration />
           <CreatePost />
           <CreateReply />
           {children}
