@@ -24,7 +24,7 @@ export default function Followers() {
   } = useQuery({
     queryKey: ['users', 'followers'],
     queryFn: async () => {
-      const res = await clientAxios.get<UserI[]>('/relations/followers/');
+      const res = await clientAxios.get<UserI[]>('/relations/followers');
       return res.data;
     },
     staleTime: 1000 * 60 * 10,
