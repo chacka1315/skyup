@@ -268,7 +268,7 @@ function SidebarTrigger({
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
-      className={cn('w-fit h-fit', className)}
+      className={cn('size-9 p-0', className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();

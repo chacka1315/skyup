@@ -34,7 +34,6 @@ export default function AllUsers() {
   } = useQuery({
     queryKey: ['users', 'all'],
     queryFn: async () => {
-      console.log('Searching all users');
       const res = await clientAxios.get<UserI[]>('/users/');
       return res.data;
     },
@@ -48,7 +47,6 @@ export default function AllUsers() {
   } = useQuery({
     queryKey: ['users', 'all', searchQuery],
     queryFn: async () => {
-      console.log('Searching users with query:', searchQuery);
       if (searchQuery.length > 50) return [];
       const res = await clientAxios.get<UserI[]>('/users/', {
         params: {
