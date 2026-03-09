@@ -85,6 +85,8 @@ export default function SignIn() {
     }
   };
 
+  console.log('SIGN IN');
+
   return (
     <div className="relative flex justify-center items-center h-screen">
       <div className="hidden md:flex items-center gap-1 absolute top-4 left-10">
