@@ -62,11 +62,11 @@ export function useFollowUser() {
       user: UserI;
     }) => {
       if (variables.mode === 'follow') {
-        await clientAxios.post('/relations', {
+        await clientAxios.post('/relations/', {
           following_id: variables.user.id,
         });
       } else {
-        await clientAxios.delete('/relations', {
+        await clientAxios.delete('/relations/', {
           data: { following_id: variables.user.id },
         });
       }
