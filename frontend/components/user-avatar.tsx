@@ -15,7 +15,7 @@ export default function UserAvatar({
         src={user?.profile?.avatar_url ?? undefined}
         className="object-cover"
       />
-      <AvatarFallback className="bg-primary font-bold text-primary-foreground">
+      <AvatarFallback className="bg-primary font-bold text-[12px] md:text-[16px] text-primary-foreground">
         {user?.profile.name.charAt(0)}
       </AvatarFallback>
     </Avatar>

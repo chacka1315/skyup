@@ -57,7 +57,7 @@ export default function Posts() {
         <span className="h-0.75 w-0.75 bg-gray-500 rounded-full"></span>
       </div>
       <Button
-        className="h-12 w-12 lg:hidden gap-0 rounded-full fixed top-[90vh] right-5"
+        className="h-12 w-12 lg:hidden gap-0 rounded-full fixed bottom-12 right-8"
         onClick={() => setPostAreaIsOpen(!postAreaIsOpen)}
       >
         +<FeatherIcon />

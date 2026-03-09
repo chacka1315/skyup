@@ -17,6 +17,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from './ui/sidebar';
 import Image from 'next/image';
 import { LogOutIcon, SettingsIcon, UserIcon } from 'lucide-react';
@@ -40,6 +41,7 @@ export default function AppSidebar() {
   );
   const postAreaIsOpen = useAppStore((state) => state.createPostAreaIsOpen);
   const setSelectedUsersTab = useAppStore((state) => state.setSelectedUsersTab);
+  const { setOpenMobile } = useSidebar();
 
   if (error) {
     throw error;
@@ -61,7 +63,10 @@ export default function AppSidebar() {
               <SidebarMenu>
                 <Navbar />
                 <Button
-                  onClick={() => setCreatePostAreaIsOpen(!postAreaIsOpen)}
+                  onClick={() => {
+                    setOpenMobile(false);
+                    setCreatePostAreaIsOpen(!postAreaIsOpen);
+                  }}
                   className="rounded-full mt-2"
                 >
                   Skyup
@@ -76,7 +81,10 @@ export default function AppSidebar() {
                 <div className=" self-center flex items-center gap-3 text-gray-500 text-[13px]">
                   <Link
                     href="/users"
-                    onClick={() => setSelectedUsersTab('followers')}
+                    onClick={() => {
+                      setOpenMobile(false);
+                      setSelectedUsersTab('followers');
+                    }}
                   >
                     <span className="text-black font-bold">
                       {currentUser.followers_count}
@@ -85,7 +93,10 @@ export default function AppSidebar() {
                   </Link>
                   <Link
                     href="/users"
-                    onClick={() => setSelectedUsersTab('followings')}
+                    onClick={() => {
+                      setOpenMobile(false);
+                      setSelectedUsersTab('followings');
+                    }}
                   >
                     <span className="text-black font-bold">
                       {currentUser.followings_count}
