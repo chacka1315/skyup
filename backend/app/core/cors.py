@@ -1,11 +1,22 @@
 from .config import settings
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def get_cors_options():
     env = settings.PY_ENV
 
     if env == "prod":
-        origins = ["https://myapp.com"]
+        origins = []
+        web_page_url = os.getenv("WEB_PAGE_URL")
+
+        if web_page_url:
+            origins.append(web_page_url)
+        else:
+            print("⚠️No web page url provided for prod.")
+
     elif env == "dev":
         origins = [
             "http://localhost:3000",

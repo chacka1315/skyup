@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 FROM deps AS dev
 ENV NODE_ENV=development
 COPY --chown=node:node . .
-USER node
+
 EXPOSE 3000
 CMD ["pnpm", "run", "dev"]
 

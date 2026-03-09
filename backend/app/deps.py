@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from .core.db import engine
 from typing import Annotated
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
 from .schemas import UserCreate
 from app.models import User, EmailVerification
@@ -32,32 +32,31 @@ SessionDep = Annotated[Session, Depends(get_sesssion)]
 async def validate_user_creation(
     user_in: UserCreate, session: SessionDep
 ) -> UserCreate:
+    # check if email already exists
+    user_with_same_email = session.exec(
+        select(User).where(User.email == user_in.email)
+    ).first()
 
-    # check if user already exist with same username
-    existing_user = session.exec(
-        select(User).where(
-            or_(User.username == user_in.username, User.email == user_in.email)
-        )
-    ).one_or_none()
-
-    if existing_user is None:
-        return user_in
-
-    if existing_user.email == user_in.email:
-        if not existing_user.is_verified:
-            session.delete(existing_user)
+    if user_with_same_email is not None:
+        if not user_with_same_email.is_verified:
+            session.delete(user_with_same_email)
             session.commit()
-            return user_in
-
         else:
             raise HTTPException(
                 status_code=400, detail="A user already exists with same email address."
             )
 
-    if existing_user.username == user_in.username:
+    # check if username already exists
+    user_with_same_username = session.exec(
+        select(User).where(User.username == user_in.username)
+    ).first()
+
+    if user_with_same_username is not None:
         raise HTTPException(
             status_code=400, detail="A user already exists with same username."
         )
+
+    return user_in
 
 
 # authentication deps

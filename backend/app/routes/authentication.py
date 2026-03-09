@@ -66,6 +66,15 @@ async def create_user(
     mail_res = await send_email_verification(
         user_email=user_db.email, user_name=user_in.name, code=verification.code
     )
+
+    mail_status = mail_res.get("status")
+
+    if mail_status == "error":
+        raise HTTPException(
+            status_code=500,
+            detail="Could not create your account due to an unexpected error, Try later.",
+        )
+
     return user_db
 
 

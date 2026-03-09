@@ -13,23 +13,23 @@ fake = Faker()
 # 40k posts;
 # 250k likes;
 # 15k follows;
+users_count = 200
+posts_count = 4000
+replies_count = 2000
+likes_count = 40000
+bookmarks_count = 10000
+follows_count = 2000
 
+users_count = 10
+posts_count = 40
+replies_count = 40
+likes_count = 400
+bookmarks_count = 100
+follows_count = 20
 if settings.PY_ENV == "prod":
     print("SEED FOR PROD🚀")
-    users_count = 800
-    posts_count = 40_000
-    replies_count = 20_000
-    likes_count = 400_000
-    bookmarks_count = 100_000
-    follows_count = 20_000
 else:
     print("SEED FOR DEV OR TEST🧑‍💻")
-    users_count = 200
-    posts_count = 4000
-    replies_count = 2000
-    likes_count = 40000
-    bookmarks_count = 10000
-    follows_count = 2000
 
 
 def seed_users(session: Session):

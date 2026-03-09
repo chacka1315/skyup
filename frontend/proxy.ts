@@ -12,6 +12,9 @@ export function proxy(req: NextRequest) {
 
   const isAuthPage = checkAuthPage(pathname);
   const isProtectedRoute = checkProtectedRoute(pathname);
+  console.log('Refresh cookie?', hasAuthCookie);
+  console.log('isAuthPage?', isAuthPage);
+  console.log('isProtected?', isProtectedRoute);
 
   if (hasAuthCookie && isAuthPage) {
     return NextResponse.redirect(new URL('/', req.url));
