@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import FieldError from '@/components/field-error';
 import { ApiError } from '@/types/errors';
 import { SuccessAuth } from '@/types/auth';
@@ -42,7 +42,6 @@ export default function SignIn() {
   const [userData, setUserData] = useState({ username: '', password: '' });
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const onInputsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const field = e.target.id;
@@ -69,13 +68,7 @@ export default function SignIn() {
       );
       localStorage.setItem('access_token', res.data.access_token);
       setAuthHintCookie();
-
-      const nextPath = searchParams.get('next');
-      if (nextPath && nextPath.startsWith('/')) {
-        router.push(nextPath);
-      } else {
-        router.push('/');
-      }
+      router.push('/');
     } catch (error) {
       clearAuthHintCookie();
       if (axios.isAxiosError<ApiError>(error)) {
