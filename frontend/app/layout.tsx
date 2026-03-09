@@ -3,6 +3,7 @@ import { inter } from '../lib/font';
 import './globals.css';
 import QueryProvider from './query-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'SkyUp',
@@ -20,6 +21,7 @@ export default function RootLayout({
         <QueryProvider>{children}</QueryProvider>
         <Toaster id="global" position="top-center" />
         <Toaster id="post-stuff" position="top-center" />
+        <Analytics />
       </body>
     </html>
   );
