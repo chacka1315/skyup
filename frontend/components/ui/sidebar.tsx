@@ -268,14 +268,14 @@ function SidebarTrigger({
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
-      className={cn('size-7', className)}
+      className={cn('w-fit h-fit', className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
       {...props}
     >
-      <UserAvatar user={currentUser} size={7} />
+      <UserAvatar user={currentUser} size={9} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

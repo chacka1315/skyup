@@ -23,7 +23,7 @@ export default function Followings() {
   } = useQuery({
     queryKey: ['users', 'followings'],
     queryFn: async () => {
-      const res = await clientAxios.get<UserI[]>('/relations/followings');
+      const res = await clientAxios.get<UserI[]>('/relations/followings/');
       return res.data;
     },
     staleTime: 1000 * 60 * 10,

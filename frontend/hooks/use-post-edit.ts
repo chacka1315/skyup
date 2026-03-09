@@ -14,7 +14,7 @@ export function usePostEdit(
 
   const mutation = useMutation({
     mutationFn: async (content: string) => {
-      const res = await clientAxios.put<PostI>(`/posts/${postId}`, {
+      const res = await clientAxios.put<PostI>(`/posts/${postId}/`, {
         content,
       });
 

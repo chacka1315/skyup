@@ -10,7 +10,7 @@ export function usePostDelete(postId: string) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const res = await clientAxios.delete(`/posts/${postId}`);
+      const res = await clientAxios.delete(`/posts/${postId}/`);
       return res.data;
     },
 

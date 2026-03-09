@@ -22,7 +22,7 @@ export function useReply() {
   const mutation = useMutation({
     mutationFn: async (variables: ReplyData) => {
       const res = await clientAxios.post<ReplyI>(
-        `/posts/${variables.post.id}/replies`,
+        `/posts/${variables.post.id}/replies/`,
         { content: variables.replyContent },
       );
       return res.data;

@@ -16,7 +16,7 @@ export default function SinglePost({ postId }: { postId: string }) {
     isLoading,
   } = useQuery({
     queryFn: async () => {
-      const res = await clientAxios.get<PostI>(`/posts/${postId}`);
+      const res = await clientAxios.get<PostI>(`/posts/${postId}/`);
 
       return res.data;
     },
