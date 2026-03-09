@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import { SuccessAuth } from '@/types/auth';
+import { setAuthHintCookie, clearAuthHintCookie } from '@/lib/auth-hint';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -54,12 +55,14 @@ clientAxios.interceptors.response.use(
 
         if (typeof window !== 'undefined') {
           localStorage.setItem('access_token', newAccessToken);
+          setAuthHintCookie();
         }
         clientAxios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
         return await clientAxios(originalRequest);
       } catch {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('access_token');
+          clearAuthHintCookie();
           window.location.href = '/sign-in';
         }
       }

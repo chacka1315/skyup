@@ -30,6 +30,7 @@ import { Button } from './ui/button';
 import UserAvatar from './user-avatar';
 import { clientAxios } from '@/lib/axios/axios-client';
 import { useRouter } from 'next/navigation';
+import { clearAuthHintCookie } from '@/lib/auth-hint';
 
 export default function AppSidebar() {
   const [dropdownIsOpen, setDropdownIsOpen] = useState(false);
@@ -138,6 +139,7 @@ function AccountDropdown({
   const handleLogout = async () => {
     await clientAxios.post('/auth/logout/');
     localStorage.removeItem('access_token');
+    clearAuthHintCookie();
     queryClient.clear();
     router.push('/sign-in');
   };

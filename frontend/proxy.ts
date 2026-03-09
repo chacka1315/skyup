@@ -4,23 +4,31 @@ import {
   isAuthPage as checkAuthPage,
   isProtectedRoute as checkProtectedRoute,
 } from './lib/utils';
+import { AUTH_HINT_COOKIE_NAME } from './lib/auth-hint';
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  const hasAuthCookie = !!req.cookies.get('refresh_token')?.value;
+  const hasAuthHint = req.cookies.get(AUTH_HINT_COOKIE_NAME)?.value === '1';
 
   const isAuthPage = checkAuthPage(pathname);
   const isProtectedRoute = checkProtectedRoute(pathname);
-  console.log('Refresh cookie?', hasAuthCookie);
+
+  console.log('Auth hint?', hasAuthHint);
   console.log('isAuthPage?', isAuthPage);
   console.log('isProtected?', isProtectedRoute);
 
-  if (hasAuthCookie && isAuthPage) {
+  if (hasAuthHint && isAuthPage) {
     return NextResponse.redirect(new URL('/', req.url));
-  } else if (!hasAuthCookie && isProtectedRoute) {
-    return NextResponse.redirect(new URL('/sign-in', req.url));
+  } else if (!hasAuthHint && isProtectedRoute) {
+    const signInUrl = new URL('/sign-in', req.url);
+    const nextPath = `${pathname}${req.nextUrl.search}`;
+    signInUrl.searchParams.set('next', nextPath);
+    return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+};
