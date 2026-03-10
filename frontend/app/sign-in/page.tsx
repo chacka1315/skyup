@@ -24,6 +24,7 @@ import {
   LockKeyholeIcon,
   MailCheckIcon,
   LoaderIcon,
+  ArrowRightIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
@@ -36,6 +37,7 @@ import { setAuthHintCookie, clearAuthHintCookie } from '@/lib/auth-hint';
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmiting, setIsSubmiting] = useState(false);
+  const [isGuestSubmiting, setIsGuestSubmiting] = useState(false);
   const [submitError, setSubmitError] = useState<null | string>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -87,7 +89,46 @@ export default function SignIn() {
     }
   };
 
-  console.log('SIGN IN');
+  const handleGuestLogin = async () => {
+    const credentials = {
+      username: 'visitor@skyup.com',
+      password: 'fooBar1234@',
+    };
+
+    setIsGuestSubmiting(true);
+
+    const formData = new FormData();
+
+    for (const [key, value] of Object.entries(credentials)) {
+      formData.append(key, value);
+    }
+
+    try {
+      const res = await axios.post<SuccessAuth>(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login/`,
+        formData,
+        { withCredentials: true },
+      );
+      localStorage.setItem('access_token', res.data.access_token);
+      setAuthHintCookie();
+      router.push('/');
+    } catch (error) {
+      clearAuthHintCookie();
+      if (axios.isAxiosError<ApiError>(error)) {
+        const detail = error.response?.data.detail;
+
+        if (typeof detail == 'string') {
+          setSubmitError(detail);
+        } else {
+          const newFormErrors = { ...formErrors };
+          detail?.forEach((d) => (newFormErrors[d.loc[1]] = d.msg));
+          setFormErrors(newFormErrors);
+        }
+      }
+    } finally {
+      setIsGuestSubmiting(false);
+    }
+  };
 
   return (
     <div className="relative flex justify-center items-center h-screen">
@@ -162,13 +203,29 @@ export default function SignIn() {
               <FieldError error={formErrors.password} />
             </section>
           </CardContent>
-          <CardFooter className="mt-5">
-            <Button className="w-full">
+          <CardFooter className="mt-5 flex-col gap-2">
+            <Button
+              className="w-full"
+              disabled={isGuestSubmiting || isSubmiting}
+            >
               {isSubmiting ? (
                 <LoaderIcon className="animate-spin size-5 stroke-[3px]" />
               ) : (
                 'Connect account'
               )}
+            </Button>
+            <Button
+              className="w-full"
+              type="button"
+              onClick={handleGuestLogin}
+              disabled={isGuestSubmiting || isSubmiting}
+            >
+              {isGuestSubmiting ? (
+                <LoaderIcon className="animate-spin size-5 stroke-[3px]" />
+              ) : (
+                'Continue as guest (for visitors)'
+              )}
+              {!isGuestSubmiting && <ArrowRightIcon />}
             </Button>
           </CardFooter>
         </form>

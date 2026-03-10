@@ -79,7 +79,7 @@ type PostAuthorProps = {
 
 function PostAuthor({ author }: PostAuthorProps) {
   return (
-    <div className=" text-[13px] md:text-[15px] flex flex-col">
+    <div className=" text-[15px] md:text-[16px] flex flex-col">
       <p className="font-semibold">{author.profile.name}</p>
       <p className="text-gray-500">@{author.username}</p>
     </div>

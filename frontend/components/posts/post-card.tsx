@@ -75,7 +75,7 @@ type PostAuthorProps = {
 
 function PostAuthor({ author, createdAt }: PostAuthorProps) {
   return (
-    <section className=" text-[13px] md:text-[15px] flex items-center gap-2">
+    <section className=" text-[15px] md:text-[16px] flex items-center gap-2">
       <p className="font-semibold">{author.profile.name}</p>
       <p className="text-gray-500">@{author.username}</p>
       <span className="h-0.5 w-0.5 bg-gray-500 rounded-full"></span>

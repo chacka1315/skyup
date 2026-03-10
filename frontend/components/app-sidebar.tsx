@@ -146,6 +146,7 @@ function AccountDropdown({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setOpenMobile } = useSidebar();
 
   const handleLogout = async () => {
     await clientAxios.post('/auth/logout/');
@@ -186,13 +187,16 @@ function AccountDropdown({
             </div>
           </div>
         </DropdownMenuLabel>
-        <Link href={`/profiles/${currentUser.username}`}>
+        <Link
+          href={`/profiles/${currentUser.username}`}
+          onClick={() => setOpenMobile(false)}
+        >
           <DropdownMenuItem>
             <UserIcon />
             Profile
           </DropdownMenuItem>
         </Link>
-        <Link href="/settings">
+        <Link href="/settings" onClick={() => setOpenMobile(false)}>
           <DropdownMenuItem>
             <SettingsIcon />
             Settings

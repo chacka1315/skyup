@@ -60,7 +60,7 @@ async def create_user(
     )
     save_instance(verification, session)
 
-    session.commit()
+    session.flush()
     refresh_all(session, user_db, user_profile, verification)
 
     mail_res = await send_email_verification(
@@ -68,13 +68,13 @@ async def create_user(
     )
 
     mail_status = mail_res.get("status")
-
     if mail_status == "error":
         raise HTTPException(
             status_code=500,
             detail="Could not create your account due to an unexpected error, Try later.",
         )
 
+    session.commit()
     return user_db
 
 
