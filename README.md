@@ -3,6 +3,8 @@
 SkyUp is a full-stack social app inspired by Twitter/X.  
 It includes authentication, posts, replies, likes, bookmarks, profiles, and follow relationships.
 
+🔗**Visite the app by clicking https://skyup-pi.vercel.app/** **→**
+
 ## Features
 
 - Email/password authentication with email verification
@@ -176,7 +178,7 @@ make seed
 ```
 
 ## API Overview
-`Just visit FastAPI docs to see all endpoints: `http://localhost:8000/docs`
+Just visit FastAPI docs to see all endpoints: `http://localhost:8000/docs
 
 ## Notes
 
