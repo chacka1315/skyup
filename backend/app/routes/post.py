@@ -45,7 +45,7 @@ post_router = APIRouter(
 async def create_post(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_verified_user)],
-    content: Annotated[str, Form(max_length=300)],
+    content: Annotated[str, Form(max_length=500)] = "",
     media: Annotated[UploadFile | None, File()] = None,
 ):
     post_db = Post(content=content, author_id=current_user.id)

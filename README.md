@@ -40,6 +40,7 @@ It includes authentication, posts, replies, likes, bookmarks, profiles, and foll
 - Frontend calls backend using `NEXT_PUBLIC_API_URL`
 - Refresh token is stored in an HttpOnly cookie
 - Media files are uploaded to Cloudinary
+- `Docker` for containerization
 
 ## Project Structure
 
@@ -51,7 +52,8 @@ skyup/
 |   |-- uv.lock
 |   |-- Makefile
 |   |-- alembic.ini
-|   `-- app/
+|   |-- Dockerfile
+|   |-- app/
 |       |-- main.py
 |       |-- models.py
 |       |-- deps.py
@@ -80,6 +82,7 @@ skyup/
 |   |-- pnpm-lock.yaml
 |   |-- next.config.ts
 |   |-- proxy.ts
+|   |-- Dockerfile
 |   |-- app/
 |   |   |-- layout.tsx
 |   |   |-- globals.css
@@ -103,18 +106,15 @@ skyup/
 |   |   `-- zod/
 |   |-- types/
 |   `-- public/
-`-- .gitignore
+|-- compose.yml
+|-- .gitignore
 ```
 
 ## Prerequisites
-
-- Node.js 20+
-- `pnpm`
-- Python 3.12+
-- `uv`
-- PostgreSQL
+- Docker 
 - Cloudinary account
 - SMTP credentials (for email verification)
+- Mailtrap account (for mail testing)
 
 ## Environment Variables
 
@@ -157,16 +157,11 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ### 1. Install dependencies
 
 ```bash
-# backend
-cd backend
-uv sync
-
-# frontend
-cd ../frontend
-pnpm install
+cd skyup
+docker compose up --build
 ```
 
-### 2. Run database migrations
+### 2. Run database migrations manually
 
 ```bash
 cd backend
@@ -180,40 +175,8 @@ cd backend
 make seed
 ```
 
-### 4. Start backend
-
-```bash
-cd backend
-make dev
-```
-
-FastAPI docs: `http://localhost:8000/docs`
-
-### 5. Start frontend
-
-```bash
-cd frontend
-pnpm dev
-```
-
-Open `http://localhost:3000`.
-
 ## API Overview
-
-- `POST /api/auth/sign-up/`
-- `POST /api/auth/login/`
-- `POST /api/auth/refresh/`
-- `POST /api/auth/logout/`
-- `GET /api/users/me/`
-- `GET /api/users/`
-- `POST /api/relations/` and `DELETE /api/relations/`
-- `GET /api/posts/` (feed)
-- `GET /api/posts/trends/`
-- `POST /api/posts/`, `PUT /api/posts/{post_id}/`, `DELETE /api/posts/{post_id}/`
-- `POST|DELETE /api/posts/{post_id}/like/`
-- `POST|DELETE /api/posts/{post_id}/bookmark/`
-- `GET /api/posts/{post_id}/replies/` and related reply CRUD
-- `PUT /api/profiles/`
+`Just visit FastAPI docs to see all endpoints: `http://localhost:8000/docs`
 
 ## Notes
 
