@@ -17,7 +17,7 @@ def get_cors_options():
         else:
             print("⚠️No web page url provided for prod.")
 
-    elif env == "dev":
+    elif env == "dev" or env == "test":
         origins = [
             "http://localhost:3000",
         ]
