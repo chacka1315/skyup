@@ -17,3 +17,12 @@ migrate-down:
 
 seed:
 	uv run python -m app.scripts.seed
+
+test:
+	uv run pytest tests/ -v
+
+test-x:
+	uv run pytest tests/ -v --tb=short -x
+
+test-watch:
+	uv run ptw tests/ -- -v --tb=short
